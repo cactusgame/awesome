@@ -1,3 +1,6 @@
+feature_definition_config = {}
+feature_definition_config["close_n_days_before"] = 3
+
 feature_definition = {}
 # close price before N days
 feature_definition["close_b0"] = ("float", "REAL")

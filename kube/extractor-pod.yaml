@@ -1,0 +1,29 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: extractor-test
+  namespace: default
+spec:
+  restartPolicy: Never
+  containers:
+  - name: extractor-test
+    securityContext:
+      privileged: false
+    image: ccr.ccs.tencentyun.com/prometheus/extractor-test:latest
+    imagePullPolicy: Always
+    command: ["/bin/sh"]
+    args: ["-c","sleep 100000000"]
+    ports:
+    - containerPort: 8080
+    resources:
+      requests:
+        cpu: 2000m
+        memory: 3Gi
+      limits:
+        cpu: 2000m
+        memory: 3Gi
+  imagePullSecrets:
+  - name: qcloudregistrykey
+  securityContext:
+    runAsUser: 0

@@ -20,3 +20,39 @@ has implemnted in Feature SDK
 
 
 ## software version
+
+
+## Build Docker
+
+### the base image for feature extractor. 
+You must exec this command under the root (asesome) folder
+
+This part denpends on Tencent's cloud
+```
+(docker login...)
+
+```
+```
+docker build -t ccr.ccs.tencentyun.com/prometheus/extractor-test-base:latest -f docker-base/Dockerfile .
+docker push ccr.ccs.tencentyun.com/prometheus/extractor-test-base:latest
+```
+
+
+### the extractor image
+```
+docker build -t ccr.ccs.tencentyun.com/prometheus/extractor-test:latest -f docker-extractor/Dockerfile .
+docker push ccr.ccs.tencentyun.com/prometheus/extractor-test:latest
+```
+
+## Run Pod
+
+todo : log system
+```
+export PYTHONPATH=${PYTHONPATH}:.
+python src/extract/feature_extractor.py
+```
+
+You have to push the docker image first, then create it in k8s.
+```
+kubectl create -f kube/extractor-pod.yaml
+```

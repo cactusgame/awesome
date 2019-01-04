@@ -6,29 +6,47 @@ from feature_definition import feature_definition
 
 
 class FeatureSDK():
-    def __init__(self):
-        self.connection = None  # using sqllite, the storage is a db connection
+    def __init__(self, recreate_table=True):
+        self.recreate_table = recreate_table
+        self.table_name = "FEATURE"
+        self.connection = self.__get_connection()  # using sqllite, the storage is a db connection
+        self.__update_feature_table_columns()
 
-    def update_feature_table_columns(self):
-        """
-        update the feature table in feature.db
-        according the `feature_definition` file
+    def save(self, dt, share_id, feature_names, values):
+        '''
+        you must call `commit` after 'save'
+        the len(feature_names) must equals to len(values)
+        :param dt:
+        :param share_id:
+        :param feature_names:
+        :param values:
         :return:
-        """
-        feature_dict = self.load_feature_definition()
-        self.connection = self.get_connection()
+        '''
+        assert len(feature_names) == len(values)
+        # print("save ", dt, share_id, feature_names, values)
 
-        self.init_table_lazy()
+        c = self.connection.cursor()
+        sql_values = ["'{}'".format(x) if type(x) is str else str(x) for x in values]  # convert the str to 'str'
+        sql = "INSERT INTO {} (time,share_id,{}) VALUES ({},{},{})".format(
+            self.table_name,
+            ",".join(feature_names),
+            "'" + dt + "'",
+            "'" + share_id + "'",
+            ",".join(sql_values))
+        # print(">>>> " + sql)
+        c.execute(sql)
 
-        for key, value in feature_dict.iteritems():
-            if not self.has_feature_column(key):
-                self.create_feature_column(key, value)
-
+    def commit(self):
         self.connection.commit()
-        self.connection.close()
+
+    def get(self):
+        c = self.connection.cursor()
+        cursor = c.execute("SELECT * FROM {}".format(self.table_name))
+        values = cursor.fetchall()
+        print(values)
 
     # ----- private -----
-    def get_connection(self):
+    def __get_connection(self):
         try:
             con = lite.connect('awesome.db')
         except lite.Error, e:
@@ -36,29 +54,45 @@ class FeatureSDK():
             sys.exit(1)
         return con
 
-    def init_table_lazy(self):
+    def __update_feature_table_columns(self):
+        """
+        update the feature table in feature.db
+        according the `feature_definition` file
+        :return:
+        """
+        feature_dict = self.__load_feature_definition()
+
+        self.__init_table()
+
+        for key, value in feature_dict.iteritems():
+            if not self.__has_feature_column(key):
+                self.__add_feature_column(key, value)
+
+    def __init_table(self):
         try:
             c = self.connection.cursor()
-            c.execute('''CREATE TABLE FEATURE
+            if self.recreate_table:
+                c.execute("DROP TABLE IF EXISTS {};".format(self.table_name))
+            c.execute('''CREATE TABLE IF NOT EXISTS {}
                    (time        CHAR(25)    NOT NULL,
                    share_id     CHAR(15)    NOT NULL,
-                   primary key(TIME,SHARE_ID))  ;''')
+                   primary key(TIME,SHARE_ID))  ;'''.format(self.table_name))
         except Exception, err:
             print(err)
 
-    def has_feature_column(self, key):
+    def __has_feature_column(self, key):
         c = self.connection.cursor()
-        columns = [i[1] for i in c.execute('PRAGMA table_info(FEATURE)')]
+        columns = [i[1] for i in c.execute('PRAGMA table_info({})'.format(self.table_name))]
         if key in columns:
             return True
         return False
 
-    def create_feature_column(self, key, value_type):
-        print("to create column name={} type={}".format( key , value_type[1]))
+    def __add_feature_column(self, key, value_type):
+        print("to add column name={} type={}".format(key, value_type[1]))
         c = self.connection.cursor()
-        c.execute('ALTER TABLE FEATURE ADD COLUMN {} {}'.format(key, value_type[1]))
+        c.execute('ALTER TABLE {} ADD COLUMN {} {}'.format(self.table_name, key, value_type[1]))
 
-    def load_feature_definition(self):
+    def __load_feature_definition(self):
         """
         load feature definition from a file
         :return:
@@ -68,5 +102,5 @@ class FeatureSDK():
 
 if __name__ == "__main__":
     # test case
-    sdk = FeatureSDK()
-    sdk.update_feature_table_columns()
+    sdk = FeatureSDK(recreate_table=False)
+    sdk.get()
