@@ -29,6 +29,8 @@ class FeatureExtractor:
         :param end_date:
         :return:
         """
+        # print("prepare to extract share={}".format(share_id))
+        context.logger.info("prepare to extract share={}".format(share_id))
         self.__extract_one_share_n_days_close(share_id, start_date, end_date)
 
     def __extract_one_share_n_days_close(self, share_id, start_date, end_date):
@@ -38,7 +40,7 @@ class FeatureExtractor:
         # print(close_s)
         close_list = close_s.tolist()
         date_list = close_s.index.tolist()
-        print("there are {} rows in {} with close price".format(len(close_list),share_id))
+        context.logger.info("there are {} rows in {} with close price".format(len(close_list), share_id))
         n = feature_definition_config["close_n_days_before"]
         for index in range(len(close_list)):
             if len(close_list[index:index + n]) == n:
@@ -75,4 +77,4 @@ if __name__ == "__main__":
     # upload the db after extract the features
     uploader = FileUploader()
     uploader.coscmd_upload(os.path.abspath("awesome.db"))
-    print(time.time() - _start)
+    context.logger.warn("extracting completed, use time {}s".format(str(time.time() - _start)))

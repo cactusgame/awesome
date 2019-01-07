@@ -6,3 +6,4 @@ RUN pip --no-cache-dir install -r /root/requirements.pip && \
     python -m ipykernel.kernelspec
 
 ADD src /root/src/
+ADD run.sh /root/run.sh

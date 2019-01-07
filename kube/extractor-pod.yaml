@@ -13,7 +13,7 @@ spec:
     image: ccr.ccs.tencentyun.com/prometheus/extractor-test:latest
     imagePullPolicy: Always
     command: ["/bin/sh"]
-    args: ["-c","sleep 100000000"]
+    args: ["-c","sh run.sh"]
     ports:
     - containerPort: 8080
     resources:
