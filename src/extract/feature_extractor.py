@@ -3,6 +3,7 @@ from feature_sdk import FeatureSDK
 from feature_definition import feature_definition_config
 
 from src.utils.file_uploader import FileUploader
+from src.context import context
 
 import tushare as ts
 import time
@@ -34,21 +35,24 @@ class FeatureExtractor:
         self.__extract_one_share_n_days_close(share_id, start_date, end_date)
 
     def __extract_one_share_n_days_close(self, share_id, start_date, end_date):
-        bar_df = ts.pro_bar(pro_api=context.tushare, ts_code=share_id, start_date=start_date,
-                            end_date=end_date, adj='qfq')
-        close_s = bar_df['close']
-        # print(close_s)
-        close_list = close_s.tolist()
-        date_list = close_s.index.tolist()
-        context.logger.info("there are {} rows in {} with close price".format(len(close_list), share_id))
-        n = feature_definition_config["close_n_days_before"]
-        for index in range(len(close_list)):
-            if len(close_list[index:index + n]) == n:
-                # print(date_list[index], close_list[index:index + n])
-                # the prefix of close_price in
-                self.sdk.save(date_list[index], share_id, ["close_b" + str(i) for i in range(n)],
-                              close_list[index:index + n])
-        self.sdk.commit()
+        try:
+            bar_df = ts.pro_bar(pro_api=context.tushare, ts_code=share_id, start_date=start_date,
+                                end_date=end_date, adj='qfq')
+            close_s = bar_df['close']
+            # print(close_s)
+            close_list = close_s.tolist()
+            date_list = close_s.index.tolist()
+            context.logger.info("there are {} rows in {} with close price".format(len(close_list), share_id))
+            n = feature_definition_config["close_n_days_before"]
+            for index in range(len(close_list)):
+                if len(close_list[index:index + n]) == n:
+                    # print(date_list[index], close_list[index:index + n])
+                    # the prefix of close_price in
+                    self.sdk.save(date_list[index], share_id, ["close_b" + str(i) for i in range(n)],
+                                  close_list[index:index + n])
+            self.sdk.commit()
+        except Exception as e:
+            context.logger.error("error" + str(e))
 
     def __test_extract(self):
         share_id = '000001.SZ'

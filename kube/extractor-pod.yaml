@@ -23,6 +23,13 @@ spec:
       limits:
         cpu: 2000m
         memory: 3Gi
+    volumeMounts:
+      - name: featuredb
+        mountPath: /tmp/featuredb
+  volumes:
+    - name: featuredb
+      hostPath:
+        path: /mnt
   imagePullSecrets:
   - name: qcloudregistrykey
   securityContext:
