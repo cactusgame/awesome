@@ -1,6 +1,15 @@
 # awesome
 
 ## Feature SDK
+
+### design
+- extraction for different features will use different tables. For example
+  - table `feature1` has 2 columns. close_price and open_price.
+  - table `feature2` has 3 columns. high_price, close_price and open_price.
+  
+### steps
+
+### API
 save all features in sqlite.    
 `target` is also a `feature`
 
@@ -13,22 +22,20 @@ save all features in sqlite.
 - get_columns(columns)
 - get_columns_by_conditions(columns,start_date=None,end_date=None,share_ids=None): return data which `date` >= start_time and <= `end_time` and share_id in `share_ids`
 
-
-## Rec Log SDK
-has implemnted in Feature SDK
-
+    
 
 ## software version
+TODO
 
+## Install
+### Build Docker
 
-## Build Docker
-
-### the base image for feature extractor. 
+#### the base image for feature extractor. 
 You must exec this command under the root (asesome) folder
 
 This part denpends on Tencent's cloud
 ```
-(docker login...)
+(docker login...)   
 
 ```
 ```
@@ -37,14 +44,27 @@ docker push ccr.ccs.tencentyun.com/prometheus/extractor-test-base:latest
 ```
 
 
-### the extractor image
+#### the extractor image
 ```
 docker build -t ccr.ccs.tencentyun.com/prometheus/extractor-test:latest -f docker-extractor/Dockerfile .
 docker push ccr.ccs.tencentyun.com/prometheus/extractor-test:latest
 ```
 
-## Run Pod
+#### Run Pod
 You have to push the docker image first, then create it in k8s.
 ```
 kubectl create -f kube/extractor-pod.yaml
+```
+
+#### Export FEATURES to CSV
+enter into sqlite (in project `root` folder)
+```
+sqlite3 awesome.db
+```
+generate features.csv in the `data` folder
+```
+.header on  
+.mode csv  
+.once ./data/features.csv
+SELECT * FROM FEATURE;
 ```

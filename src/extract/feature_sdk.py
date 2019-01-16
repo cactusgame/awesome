@@ -2,7 +2,7 @@ import json
 import sys
 import sqlite3 as lite
 from pprint import pprint
-from feature_definition import feature_definition
+from src.extract.feature_definition import feature_definition
 
 
 class FeatureSDK():
@@ -10,17 +10,26 @@ class FeatureSDK():
         self.recreate_table = recreate_table
         self.table_name = "FEATURE"
         self.connection = self.__get_connection()  # using sqllite, the storage is a db connection
-        self.__update_feature_table_columns()
 
-    def save(self, dt, share_id, feature_names, values):
+        if recreate_table:
+            self.__update_feature_table_columns()
+
+    def save(self, feature_names, values):
+        assert len(feature_names) == len(values)
+
+        c = self.connection.cursor()
+        sql_values = ["'{}'".format(x) if type(x) is str else str(x) for x in values]  # convert the str to 'str'
+        sql = "INSERT INTO {table_name} ({feature_names}) VALUES ({values})".format(
+            table_name=self.table_name,
+            feature_names=",".join(feature_names),
+            values=",".join(sql_values))
+        # print(">>>> " + sql)
+        c.execute(sql)
+
+    def save2(self, dt, share_id, feature_names, values):
         '''
         you must call `commit` after 'save'
         the len(feature_names) must equals to len(values)
-        :param dt:
-        :param share_id:
-        :param feature_names:
-        :param values:
-        :return:
         '''
         assert len(feature_names) == len(values)
         # print("save ", dt, share_id, feature_names, values)
@@ -33,7 +42,7 @@ class FeatureSDK():
             "'" + dt + "'",
             "'" + share_id + "'",
             ",".join(sql_values))
-        # print(">>>> " + sql)
+        print(">>>> " + sql)
         c.execute(sql)
 
     def commit(self):

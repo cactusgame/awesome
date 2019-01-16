@@ -1,10 +1,12 @@
+# -*- coding: utf-8 -*-
 from src.context import context
 from feature_sdk import FeatureSDK
 from feature_definition import feature_definition_config
 
-from src.utils.file_uploader import FileUploader
+from src.utils.file_util import FileUtil
 from src.context import context
 
+import pandas as pd
 import tushare as ts
 import time
 import os
@@ -32,9 +34,20 @@ class FeatureExtractor:
         """
         # print("prepare to extract share={}".format(share_id))
         context.logger.info("prepare to extract share={}".format(share_id))
-        self.__extract_one_share_n_days_close(share_id, start_date, end_date)
+
+        close_df = self.__extract_one_share_n_days_close(share_id, start_date, end_date)
+
+        ror_df = self.__extract_one_share_n_days_RoR(share_id, start_date, end_date)
+
+        self.__merge_data_to_commit(close_df, ror_df)
 
     def __extract_one_share_n_days_close(self, share_id, start_date, end_date):
+        """
+        :param share_id:
+        :param start_date:
+        :param end_date:
+        :return:
+        """
         try:
             bar_df = ts.pro_bar(pro_api=context.tushare, ts_code=share_id, start_date=start_date,
                                 end_date=end_date, adj='qfq')
@@ -43,30 +56,63 @@ class FeatureExtractor:
             close_list = close_s.tolist()
             date_list = close_s.index.tolist()
             context.logger.info("there are {} rows in {} with close price".format(len(close_list), share_id))
+
+            # due to the order of close_price in tushare is DESC, so we can get the data from recently.
+            # example
+            """
+            query from 2018-12-20 to 2018-12-28
+            >>>> INSERT INTO FEATURE (time,share_id,close_b0,close_b1,close_b2) VALUES ('20181228','000001.SZ',9.38,9.28,9.3)
+            >>>> INSERT INTO FEATURE (time,share_id,close_b0,close_b1,close_b2) VALUES ('20181227','000001.SZ',9.28,9.3,9.34)
+            >>>> INSERT INTO FEATURE (time,share_id,close_b0,close_b1,close_b2) VALUES ('20181226','000001.SZ',9.3,9.34,9.42)
+            >>>> INSERT INTO FEATURE (time,share_id,close_b0,close_b1,close_b2) VALUES ('20181225','000001.SZ',9.34,9.42,9.45)
+            >>>> INSERT INTO FEATURE (time,share_id,close_b0,close_b1,close_b2) VALUES ('20181224','000001.SZ',9.42,9.45,9.71)
+            """
+            keys, values = [], []
             n = feature_definition_config["close_n_days_before"]
+            keys = keys + ["time", "share_id"]
+            keys = keys + ["close_b" + str(i) for i in range(n)]
             for index in range(len(close_list)):
-                if len(close_list[index:index + n]) == n:
-                    # print(date_list[index], close_list[index:index + n])
-                    # the prefix of close_price in
-                    self.sdk.save(date_list[index], share_id, ["close_b" + str(i) for i in range(n)],
-                                  close_list[index:index + n])
-            self.sdk.commit()
+                if len(close_list[index:index + n]) == n:  # else: not enough (N) data, so drop it.
+                    values.append([date_list[index], share_id] + close_list[index:index + n])
+            return pd.DataFrame(columns=keys, data=values)
         except Exception as e:
             context.logger.error("error" + str(e))
 
-    def __test_extract(self):
-        share_id = '000001.SZ'
-        df = ts.pro_bar(pro_api=context.tushare, ts_code=share_id, start_date='20120701',
-                        end_date='20120718', adj='qfq')
-        s = df['close']
-        print(s)
-        print(s[:3])
-        s_test = s[:3]
-        _idx = 0
+    def __extract_one_share_n_days_RoR(self, share_id, start_date, end_date):
+        try:
+            bar_df = ts.pro_bar(pro_api=context.tushare, ts_code=share_id, start_date=start_date,
+                                end_date=end_date, adj='qfq')
+            # reverse the original data frame, so that it make us easy to calculate the RoR (return of rate)
+            bar_df = bar_df.iloc[::-1]
+            close_s = bar_df['close']
+            # print(close_s)
+            close_list = close_s.tolist()
+            date_list = close_s.index.tolist()
+            context.logger.info("there are {} rows in {} with close price".format(len(close_list), share_id))
 
-        for ds, close_price in s_test.iteritems():
-            self.sdk.save(ds, share_id, ["close_b0"], [close_price])
-            _idx = _idx + 1
+            keys, values = [], []
+            # similar to __extract_one_share_n_days_close, only reverse the order.
+            n = feature_definition_config["ror_10_days"]
+            keys += ["time", "share_id"]
+            keys += ["ror_10_days"]
+            try:
+                for index in range(len(close_list)):
+                    if len(close_list[index:index + n]) == n:  # else: not enough (N) data, so drop it.
+                        ror = (close_list[index + n] / close_list[index]) - 1
+                        ror = round(ror,4)
+                        values.append([date_list[index], share_id, ror])
+            except IndexError:
+                print("calculate ror maybe complete")
+            return pd.DataFrame(columns=keys, data=values)
+        except Exception as e:
+            context.logger.error("error" + str(e))
+
+    def __merge_data_to_commit(self, close_df, ror_df):
+        result_df = pd.merge(close_df, ror_df, on=["time", "share_id"])
+        print(result_df)
+
+        for index, row in result_df.iterrows():
+            self.sdk.save(row.index.tolist(), row.values.tolist())
         self.sdk.commit()
 
 
@@ -75,10 +121,9 @@ if __name__ == "__main__":
     extractor = FeatureExtractor()
     # extractor.test_extract()
     # for test stage1, we should only extract recent 4000 days's data
-    extractor.extract_all(start_date='20050101', end_date='20181231')
-    # extractor.extract_one_share(share_id='000019.SZ',start_date='20010101', end_date='20181231')
+    # extractor.extract_all(start_date='20050101', end_date='20181231')
+    extractor.extract_one_share(share_id='000001.SZ', start_date='20181101', end_date='20181231')
 
     # upload the db after extract the features
-    uploader = FileUploader()
-    uploader.coscmd_upload(os.path.abspath("awesome.db"))
+    FileUtil.coscmd_upload(os.path.abspath("awesome.db"))
     context.logger.warn("extracting completed, use time {}s".format(str(time.time() - _start)))
