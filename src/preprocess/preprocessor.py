@@ -33,18 +33,17 @@ class Preprocessor:
         self.exp_log_data_file_without_header = None
         self.exp_log_header = None
 
-        # self.data_formatter = DataFormatter()
+        self.data_formatter = None
 
     def process(self):
-        pass
-        # self.shuf()
-        #
-        # self.divide_train_eval()
-        #
-        # self.split_to_shards()
+        self.shuf()
 
-        # self.build_graph()
-        #
+        self.divide_train_eval()
+
+        self.split_to_shards()
+
+        self.build_graph()
+
         # self.transform()
 
     def shuf(self):
@@ -57,7 +56,9 @@ class Preprocessor:
         exp_log_data_file_shuf = '{}.shuf'.format(exp_log_data_file)
 
         exp_log_header = FileUtil.save_remove_first_line(exp_log_data_file, exp_log_data_file_without_header)
-        # self.data_formatter.init_columns(exp_log_header)
+
+        self.data_formatter = DataFormatter()
+        self.data_formatter.init_columns(exp_log_header)
 
         # Use terashuf quasi-shuffle
         shuf_cmd = 'MEMORY={:.1f} terashuf < {} > {}'.format(SHUF_MEM, exp_log_data_file_without_header,
@@ -180,11 +181,11 @@ class Preprocessor:
             # todo: maybe, I should only use train data (or percentage of train data) to build the graph
             raw_train_data = (
                     pipeline
-                    | 'ReadTrainDataFile' >> textio.ReadFromText('features' + '*' + 'shard' + '*',
+                    | 'ReadTrainDataFile' >> textio.ReadFromText('data/features' + '*' + 'shard' + '*',
                                                                  skip_header_lines=0)
                     | 'DecodeTrainDataCSV' >> MapAndFilterErrors(
                 tft_coders.CsvCoder(self.data_formatter.get_ordered_columns(),
-                                    self.data_formatter.get_raw_data_metadata()).decode)
+                                    self.data_formatter.get_raw_data_metadata().schema).decode)
             )
 
             # Combine data and schema into a dataset tuple. Note that we already used
@@ -215,8 +216,8 @@ class Preprocessor:
 if __name__ == "__main__":
     _start = time.time()
 
-    # exp_file_path = "data/features.csv"
-    # preprocessor = Preprocessor(exp_file_path)
-    # preprocessor.process()
+    exp_file_path = "data/features.csv"
+    preprocessor = Preprocessor(exp_file_path)
+    preprocessor.process()
 
     context.logger.info("[total] preprocess use time {:.2f}s".format(time.time() - _start))
