@@ -1,4 +1,10 @@
 project log:
+2019-01-30:
+- make table columns ordered
+- add more ror metrics in DB.
+- uniform the feature `price`, like close_price
+- using Tensorflow Transform to do the preprocessing
+
 2019-01-15：
 - add new feature 10 days RoR
 - use DataFrame to store each feature and merge them together into sqlite

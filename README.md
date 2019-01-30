@@ -1,15 +1,13 @@
 # awesome
 
-## Feature SDK
+## Feature Extractor
 
 ### design
 - extraction for different features will use different tables. For example
   - table `feature1` has 2 columns. close_price and open_price.
   - table `feature2` has 3 columns. high_price, close_price and open_price.
   
-### steps
-
-### API
+### Feature SDK API
 save all features in sqlite.    
 `target` is also a `feature`
 
@@ -22,14 +20,7 @@ save all features in sqlite.
 - get_columns(columns)
 - get_columns_by_conditions(columns,start_date=None,end_date=None,share_ids=None): return data which `date` >= start_time and <= `end_time` and share_id in `share_ids`
 
-    
-
-## software version
-TODO
-
-## Install
-### Build Docker
-
+### Install
 #### the base image for feature extractor. 
 You must exec this command under the root (asesome) folder
 
@@ -42,7 +33,6 @@ This part denpends on Tencent's cloud
 docker build -t ccr.ccs.tencentyun.com/prometheus/extractor-test-base:latest -f docker-base/Dockerfile .
 docker push ccr.ccs.tencentyun.com/prometheus/extractor-test-base:latest
 ```
-
 
 #### the extractor image
 ```
@@ -60,6 +50,8 @@ kubectl create -f kube/extractor-pod.yaml
 enter into sqlite (in project `root` folder)
 ```
 sqlite3 awesome.db
+
+.exit (exit the console)
 ```
 generate features.csv in the `data` folder
 ```
@@ -68,3 +60,8 @@ generate features.csv in the `data` folder
 .once ./data/features.csv
 SELECT * FROM FEATURE;
 ```
+
+***
+
+## Preprocess
+

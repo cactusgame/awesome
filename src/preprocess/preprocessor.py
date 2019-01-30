@@ -4,6 +4,7 @@ import multiprocessing as mp
 import numpy as np
 import apache_beam as beam
 import tempfile
+import shutil
 import tensorflow as tf
 
 from tensorflow_transform.beam import impl as beam_impl
@@ -15,6 +16,7 @@ from src.context import context
 from src.utils.file_util import FileUtil
 from src.preprocess.preprocess_config import *
 from src.preprocess.preprocess_util import MapAndFilterErrors
+from src.preprocess.preprocess_util import PreprocessingFunction
 from src.preprocess.data_formatter import DataFormatter
 from src.extract.feature_definition import feature_definition
 
@@ -36,6 +38,8 @@ class Preprocessor:
         self.data_formatter = None
 
     def process(self):
+        self.reset_env()
+
         self.shuf()
 
         self.divide_train_eval()
@@ -44,7 +48,12 @@ class Preprocessor:
 
         self.build_graph()
 
-        # self.transform()
+        self.transform()
+
+    def reset_env(self):
+        if os.path.exists(TARGET_DIR):
+            shutil.rmtree(TARGET_DIR)
+        os.makedirs(TARGET_DIR)
 
     def shuf(self):
         st = time.time()
@@ -188,20 +197,20 @@ class Preprocessor:
                                     self.data_formatter.get_raw_data_metadata().schema).decode)
             )
 
-            # Combine data and schema into a dataset tuple. Note that we already used
-            # the schema to read the JSON data, but we also need it to interpret
+            # Combine data and schema into a dataset tuple.  Note that we already used
+            # the schema to read the CSV data, but we also need it to interpret
             # raw_data.
-            # transform_fn = (
-            #         (raw_train_data, self.data_formatter.get_raw_data_metadata())
-            #         | beam_impl.AnalyzeDataset(
-            #     self.training_pipeline.graph_transform_type(self.training_pipeline).transform_to_tf))
+            # That is when to use vocabulary, scale_to_0_1 or sparse_to_dense ...
+            transform_fn = (
+                    (raw_train_data, self.data_formatter.get_raw_data_metadata())
+                    | beam_impl.AnalyzeDataset(PreprocessingFunction().transform_to_tf))
 
             # Write SavedModel and metadata to two subdirectories of working_dir, given by
             # `transform_fn_io.TRANSFORM_FN_DIR` and `transform_fn_io.TRANSFORMED_METADATA_DIR` respectively.
-            # _ = (
-            #         transform_fn
-            #         | 'WriteTransformGraph' >>
-            #         transform_fn_io.WriteTransformFn("gen")) # working dir
+            _ = (
+                    transform_fn
+                    | 'WriteTransformGraph' >>
+                    transform_fn_io.WriteTransformFn(TARGET_DIR))  # working dir
 
         # Run the Beam preprocessing pipeline.
         st = time.time()
@@ -210,7 +219,44 @@ class Preprocessor:
         self.logger.info('Transformation graph built and written in {:.2f} sec'.format(time.time() - st))
 
     def transform(self):
-        pass
+        """
+        transform to tfrecord
+        :return:
+        """
+        import subprocess
+
+        train_split_fname_out = '{}.train.shard'.format(self.exp_file_path)
+        eval_split_fname_out = '{}.eval.shard'.format(self.exp_file_path)
+
+        train_tfrecord_fname_out = '{}.train.tfrecord'.format(self.exp_file_path)
+        eval_tfrecord_fname_out = '{}.eval.tfrecord'.format(self.exp_file_path)
+
+        st = time.time()
+        _exec_path = os.path.join("src/preprocess", "gen_tfrecord.py")
+
+        results = list()
+        num_proc = mp.cpu_count() / 2
+        for i in range(DATASET_NUM_SHARDS):
+            self.logger.info('Running transformer pipeline {}.'.format(i))
+
+            python_command = "python"  # Notice: the python must the same python as the master process
+            call = [python_command, _exec_path, self.exp_log_header, str(i), str(DATASET_NUM_SHARDS),
+                    train_split_fname_out, eval_split_fname_out,
+                    train_tfrecord_fname_out, eval_tfrecord_fname_out, TARGET_DIR]
+            self.logger.info("Sub process command to transform: {}".format(call))
+
+            results.append(subprocess.Popen(call))
+            if (i + 1) % num_proc == 0:
+                # block exec after
+                for result in results:
+                    while result.poll() is None:
+                        pass
+                    if result.returncode != 0:
+                        raise Exception('Transformer pipeline return code: {}. '
+                                        'Hint: when running on GPU, set `num_proc=1`.'.format(result.returncode))
+
+        self.logger.info('Finished transforming train/eval sets to TFRecord in {:.2f} sec.'.format(time.time() - st))
+        return train_tfrecord_fname_out, eval_tfrecord_fname_out
 
 
 if __name__ == "__main__":

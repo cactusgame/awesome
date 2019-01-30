@@ -73,9 +73,11 @@ class FeatureSDK():
 
         self.__init_table()
 
-        for key, value in feature_dict.iteritems():
+        feature_dict_sorted_keys = feature_dict.keys()
+        feature_dict_sorted_keys.sort()
+        for key in feature_dict_sorted_keys:
             if not self.__has_feature_column(key):
-                self.__add_feature_column(key, value)
+                self.__add_feature_column(key, feature_dict[key])
 
     def __init_table(self):
         try:

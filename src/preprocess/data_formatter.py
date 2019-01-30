@@ -14,7 +14,7 @@ class DataFormatter:
         RAW_DATA_FEATURE_SPEC = dict()
         for key, value in feature_definition.iteritems():
             if value[2] == "tf.FixedLenFeature":
-                RAW_DATA_FEATURE_SPEC[key] = tf.FixedLenFeature([], value[3])
+                RAW_DATA_FEATURE_SPEC[key] = tf.FixedLenFeature([], value[4])
             else:
                 context.logger.error("unsupport key : " + key)
 

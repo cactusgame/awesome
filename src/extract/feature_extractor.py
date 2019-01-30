@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from sklearn import preprocessing
+
 from src.context import context
 from feature_sdk import FeatureSDK
 from feature_definition import feature_definition_config
@@ -71,9 +73,10 @@ class FeatureExtractor:
             n = feature_definition_config["close_n_days_before"]
             keys = keys + ["time", "share_id"]
             keys = keys + ["close_b" + str(i) for i in range(n)]
+
             for index in range(len(close_list)):
                 if len(close_list[index:index + n]) == n:  # else: not enough (N) data, so drop it.
-                    values.append([date_list[index], share_id] + close_list[index:index + n])
+                    values.append([date_list[index], share_id] + preprocessing.scale(close_list[index:index + n]).tolist() )
             return pd.DataFrame(columns=keys, data=values)
         except Exception as e:
             context.logger.error("error" + str(e))
@@ -92,24 +95,30 @@ class FeatureExtractor:
 
             keys, values = [], []
             # similar to __extract_one_share_n_days_close, only reverse the order.
-            n = feature_definition_config["ror_10_days"]
+            # here, we calculate ror_5_days, ror_10_days ... we should use the max N in the loop.
+            n = feature_definition_config["ror_n_days_after"]
             keys += ["time", "share_id"]
-            keys += ["ror_10_days"]
+            keys += ["ror_05_days", "ror_10_days", "ror_20_days", "ror_40_days", "ror_60_days"]
             try:
                 for index in range(len(close_list)):
                     if len(close_list[index:index + n]) == n:  # else: not enough (N) data, so drop it.
-                        ror = (close_list[index + n] / close_list[index]) - 1
-                        ror = round(ror,4)
-                        values.append([date_list[index], share_id, ror])
+                        ror5 = round((close_list[index + 5] / close_list[index]) - 1, 4)
+                        ror10 = round((close_list[index + 10] / close_list[index]) - 1, 4)
+                        ror20 = round((close_list[index + 20] / close_list[index]) - 1, 4)
+                        ror40 = round((close_list[index + 40] / close_list[index]) - 1, 4)
+                        ror60 = round((close_list[index + 60] / close_list[index]) - 1, 4)
+
+                        values.append([date_list[index], share_id, ror5, ror10, ror20, ror40, ror60])
             except IndexError:
                 print("calculate ror maybe complete")
+
             return pd.DataFrame(columns=keys, data=values)
         except Exception as e:
             context.logger.error("error" + str(e))
 
     def __merge_data_to_commit(self, close_df, ror_df):
         result_df = pd.merge(close_df, ror_df, on=["time", "share_id"])
-        print(result_df)
+        # print(result_df)
 
         for index, row in result_df.iterrows():
             self.sdk.save(row.index.tolist(), row.values.tolist())
@@ -122,7 +131,7 @@ if __name__ == "__main__":
     # extractor.test_extract()
     # for test stage1, we should only extract recent 4000 days's data
     # extractor.extract_all(start_date='20050101', end_date='20181231')
-    extractor.extract_one_share(share_id='000001.SZ', start_date='20181101', end_date='20181231')
+    extractor.extract_one_share(share_id='000001.SZ', start_date='20180101', end_date='20181231')
 
     # upload the db after extract the features
     FileUtil.coscmd_upload(os.path.abspath("awesome.db"))
