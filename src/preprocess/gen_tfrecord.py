@@ -42,6 +42,11 @@ def write_to_tfrecord(args):
     split_train_file_pattern = '{}-{:05}-of-{:05}'.format(train_split_fname_out, current_index, num_shards) + '*'
     split_eval_file_pattern = '{}-{:05}-of-{:05}'.format(eval_split_fname_out, current_index, num_shards)
 
+    log.info('train_tfrecord_fname_out {}'.format(train_tfrecord_fname_out))
+    log.info('eval_tfrecord_fname_out {}'.format(eval_tfrecord_fname_out))
+    log.info('split_train_file_pattern {}'.format(split_train_file_pattern))
+    log.info('split_eval_file_pattern {}'.format(split_eval_file_pattern))
+
     data_formatter = DataFormatter()
     data_formatter.init_columns(csv_file_header)
 
@@ -58,7 +63,7 @@ def write_to_tfrecord(args):
             skip_header_lines=0)
                 | 'DecodeTrainDataCSV' >> MapAndFilterErrors(
             tft_coders.CsvCoder(data_formatter.get_ordered_columns(),
-                                data_formatter.get_raw_data_metadata().schema).decode, secondary_delimiter=',')
+                                data_formatter.get_raw_data_metadata().schema).decode)
         )
 
         raw_eval_data = (
@@ -68,7 +73,7 @@ def write_to_tfrecord(args):
             skip_header_lines=0)
                 | 'DecodeEvalDataCSV' >> MapAndFilterErrors(
             tft_coders.CsvCoder(data_formatter.get_ordered_columns(),
-                                data_formatter.get_raw_data_metadata().schema).decode, secondary_delimiter=',')
+                                data_formatter.get_raw_data_metadata().schema).decode)
         )
 
         # Examples in tf-example format (for model analysis purposes).
@@ -112,7 +117,7 @@ def write_to_tfrecord(args):
                 transformed_train_data
                 | 'EncodeTrainDataTransform' >> MapAndFilterErrors(transformed_data_coder.encode)
                 | 'WriteTrainDataTFRecord' >> tfrecordio.WriteToTFRecord(
-            '{}-{:05}-of-{:05}'.format(train_tfrecord_fname_out, i, num_shards),
+            '{}-{:05}-of-{:05}'.format(train_tfrecord_fname_out, current_index, num_shards),
             shard_name_template='', num_shards=1)
         )
 
@@ -120,7 +125,7 @@ def write_to_tfrecord(args):
                 transformed_eval_data
                 | 'EncodeEvalDataTransform' >> MapAndFilterErrors(transformed_data_coder.encode)
                 | 'WriteEvalDataTFRecord' >> tfrecordio.WriteToTFRecord(
-            '{}-{:05}-of-{:05}'.format(eval_tfrecord_fname_out, i, num_shards),
+            '{}-{:05}-of-{:05}'.format(eval_tfrecord_fname_out, current_index, num_shards),
             shard_name_template='', num_shards=1)
         )
 

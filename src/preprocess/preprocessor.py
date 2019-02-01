@@ -19,6 +19,7 @@ from src.preprocess.preprocess_util import MapAndFilterErrors
 from src.preprocess.preprocess_util import PreprocessingFunction
 from src.preprocess.data_formatter import DataFormatter
 from src.extract.feature_definition import feature_definition
+from src.config.app_config import app_config
 
 """
 to preprocess the experiment log
@@ -232,26 +233,32 @@ class Preprocessor:
         eval_tfrecord_fname_out = '{}.eval.tfrecord'.format(self.exp_file_path)
 
         st = time.time()
-        _exec_path = os.path.join("src/preprocess", "gen_tfrecord.py")
+        _exec_path = os.path.abspath(os.path.join("src/preprocess", "gen_tfrecord.py"))
 
         results = list()
         num_proc = mp.cpu_count() / 2
         for i in range(DATASET_NUM_SHARDS):
             self.logger.info('Running transformer pipeline {}.'.format(i))
 
-            python_command = "python"  # Notice: the python must the same python as the master process
+            python_command = app_config.SUBPROCESS_PYTHON  # Notice: the python must the same python as the master process
             call = [python_command, _exec_path, self.exp_log_header, str(i), str(DATASET_NUM_SHARDS),
                     train_split_fname_out, eval_split_fname_out,
                     train_tfrecord_fname_out, eval_tfrecord_fname_out, TARGET_DIR]
             self.logger.info("Sub process command to transform: {}".format(call))
 
             results.append(subprocess.Popen(call))
+
+            # I don't know why it must sleep a while. otherwise, the subprocess will be skipped.
+            time.sleep(5)
+
             if (i + 1) % num_proc == 0:
                 # block exec after
                 for result in results:
                     while result.poll() is None:
                         pass
                     if result.returncode != 0:
+                        self.logger.error('Transformer pipeline return code: {}. '
+                                          'Hint: when running on GPU, set `num_proc=1`.'.format(result.returncode))
                         raise Exception('Transformer pipeline return code: {}. '
                                         'Hint: when running on GPU, set `num_proc=1`.'.format(result.returncode))
 
