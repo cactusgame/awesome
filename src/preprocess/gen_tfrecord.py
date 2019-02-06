@@ -1,10 +1,6 @@
 import logging
 import tempfile
 import sys
-import json
-import base64
-import os
-import glob
 
 import tensorflow_transform as tft
 import apache_beam as beam
@@ -13,16 +9,11 @@ from apache_beam.runners import DirectRunner
 from tensorflow_transform.beam import impl as beam_impl
 from tensorflow_transform.beam.tft_beam_io import transform_fn_io
 from tensorflow_transform import coders as tft_coders
-from tensorflow_transform.coders import example_proto_coder
-from tensorflow_transform.tf_metadata import dataset_schema
 
 from apache_beam.io import textio
 from apache_beam.io import tfrecordio
 
-from src.utils.file_util import FileUtil
-from src.preprocess.preprocess_config import *
 from src.preprocess.preprocess_util import MapAndFilterErrors
-from src.preprocess.preprocess_util import PreprocessingFunction
 from src.preprocess.data_formatter import DataFormatter
 
 log = logging.getLogger('tensorflow')

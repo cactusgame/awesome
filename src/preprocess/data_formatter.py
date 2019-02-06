@@ -22,6 +22,12 @@ class DataFormatter:
             dataset_schema.from_feature_spec(RAW_DATA_FEATURE_SPEC))
 
     def init_columns(self, columns_str):
+        """
+        init all columns name by a fix order.
+        Also, the columns_str is the header of the csv file
+        :param columns_str:
+        :return:
+        """
         self.ordered_columns = columns_str.strip().split(',')
 
     def get_ordered_columns(self):

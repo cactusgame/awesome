@@ -5,7 +5,7 @@ import numpy as np
 import apache_beam as beam
 import tempfile
 import shutil
-import tensorflow as tf
+import csv
 
 from tensorflow_transform.beam import impl as beam_impl
 from tensorflow_transform.beam.tft_beam_io import transform_fn_io
@@ -14,11 +14,10 @@ from apache_beam.io import textio
 from apache_beam.runners import DirectRunner
 from src.context import context
 from src.utils.file_util import FileUtil
-from src.preprocess.preprocess_config import *
+from src.training.train_config import *
 from src.preprocess.preprocess_util import MapAndFilterErrors
 from src.preprocess.preprocess_util import PreprocessingFunction
 from src.preprocess.data_formatter import DataFormatter
-from src.extract.feature_definition import feature_definition
 from src.config.app_config import app_config
 
 """
@@ -29,9 +28,8 @@ get the .csv file's header(column name) first, keep it in somewhere
 
 
 class Preprocessor:
-    def __init__(self, exp_file_path):
+    def __init__(self):
         self.logger = context.logger
-        self.exp_file_path = exp_file_path
         self.exp_log_data_file_shuf = None
         self.exp_log_data_file_without_header = None
         self.exp_log_header = None
@@ -40,6 +38,8 @@ class Preprocessor:
 
     def process(self):
         self.reset_env()
+
+        self.add_target_keys()
 
         self.shuf()
 
@@ -56,15 +56,40 @@ class Preprocessor:
             shutil.rmtree(TARGET_DIR)
         os.makedirs(TARGET_DIR)
 
+    def add_target_keys(self):
+        """
+        add target keys for training
+        :return:
+        """
+        target_key = 'ror_20_days'
+        new_target_key = 'ror_20_days_bool'
+
+        # output
+        output = open(exp_target_file_path, 'w')
+        writer = csv.writer(output, delimiter=',')
+        input = open(exp_file_path, 'rb')
+        reader = csv.reader(input, delimiter=',')
+
+        header = None
+        target_index = -1
+        for row in reader:
+            if header is None:
+                header = row
+                target_index = header.index(target_key)
+                row.append(new_target_key)
+            else:
+                # notice: you must convert value from str to float or int
+                r = 1 if float(row[target_index]) > 0 else 0
+                row.append(r)
+            writer.writerow(row)
+        input.close()
+        output.close()
+
     def shuf(self):
         st = time.time()
         self.logger.info('shuff start')
 
         # we need save the .csv file header first and insert it after shuf
-        exp_log_data_file = os.path.abspath(self.exp_file_path)
-        exp_log_data_file_without_header = '{}.withoutheader'.format(exp_log_data_file)
-        exp_log_data_file_shuf = '{}.shuf'.format(exp_log_data_file)
-
         exp_log_header = FileUtil.save_remove_first_line(exp_log_data_file, exp_log_data_file_without_header)
 
         self.data_formatter = DataFormatter()
@@ -91,9 +116,6 @@ class Preprocessor:
 
     def divide_train_eval(self):
         st = time.time()
-        exp_log_data_file_train = '{}.train'.format(self.exp_file_path)
-        exp_log_data_file_eval = '{}.eval'.format(self.exp_file_path)
-
         self.logger.info(
             'Splitting data file into train ({}) and eval ({}) set.'.format(exp_log_data_file_train,
                                                                             exp_log_data_file_eval))
@@ -128,11 +150,7 @@ class Preprocessor:
         train_splitter.join()
 
         # os.remove(self.rec_log_data_file_shuf)
-
         self.logger.info('complete data split in {:.2f} sec.'.format(time.time() - st))
-
-        self.exp_log_data_file_train = exp_log_data_file_train
-        self.exp_log_data_file_eval = exp_log_data_file_eval
 
     def split_to_shards(self):
         def split_file(fname_in, fname_out, num_shards):
@@ -151,14 +169,12 @@ class Preprocessor:
         st = time.time()
         assert isinstance(DATASET_NUM_SHARDS, int)
 
-        exp_log_data_file_train_shard = '{}.shard'.format(self.exp_log_data_file_train)
-        exp_log_data_file_eval_shard = '{}.shard'.format(self.exp_log_data_file_eval)
         train_splitter = mp.Process(
             target=split_file,
-            args=(self.exp_log_data_file_train, exp_log_data_file_train_shard, DATASET_NUM_SHARDS))
+            args=(exp_log_data_file_train, exp_log_data_file_train_shard, DATASET_NUM_SHARDS))
         eval_splitter = mp.Process(
             target=split_file,
-            args=(self.exp_log_data_file_eval, exp_log_data_file_eval_shard, DATASET_NUM_SHARDS))
+            args=(exp_log_data_file_eval, exp_log_data_file_eval_shard, DATASET_NUM_SHARDS))
         train_splitter.start()
         eval_splitter.start()
         train_splitter.join()
@@ -204,7 +220,7 @@ class Preprocessor:
             # That is when to use vocabulary, scale_to_0_1 or sparse_to_dense ...
             transform_fn = (
                     (raw_train_data, self.data_formatter.get_raw_data_metadata())
-                    | beam_impl.AnalyzeDataset(PreprocessingFunction().transform_to_tf))
+                    | beam_impl.AnalyzeDataset(PreprocessingFunction().transform_to_tfrecord))
 
             # Write SavedModel and metadata to two subdirectories of working_dir, given by
             # `transform_fn_io.TRANSFORM_FN_DIR` and `transform_fn_io.TRANSFORMED_METADATA_DIR` respectively.
@@ -225,13 +241,6 @@ class Preprocessor:
         :return:
         """
         import subprocess
-
-        train_split_fname_out = '{}.train.shard'.format(self.exp_file_path)
-        eval_split_fname_out = '{}.eval.shard'.format(self.exp_file_path)
-
-        train_tfrecord_fname_out = '{}.train.tfrecord'.format(self.exp_file_path)
-        eval_tfrecord_fname_out = '{}.eval.tfrecord'.format(self.exp_file_path)
-
         st = time.time()
         _exec_path = os.path.abspath(os.path.join("src/preprocess", "gen_tfrecord.py"))
 
@@ -242,7 +251,7 @@ class Preprocessor:
 
             python_command = app_config.SUBPROCESS_PYTHON  # Notice: the python must the same python as the master process
             call = [python_command, _exec_path, self.exp_log_header, str(i), str(DATASET_NUM_SHARDS),
-                    train_split_fname_out, eval_split_fname_out,
+                    exp_log_data_file_train_shard, exp_log_data_file_eval_shard,
                     train_tfrecord_fname_out, eval_tfrecord_fname_out, TARGET_DIR]
             self.logger.info("Sub process command to transform: {}".format(call))
 
@@ -269,8 +278,7 @@ class Preprocessor:
 if __name__ == "__main__":
     _start = time.time()
 
-    exp_file_path = "data/features.csv"
-    preprocessor = Preprocessor(exp_file_path)
+    preprocessor = Preprocessor()
     preprocessor.process()
 
     context.logger.info("[total] preprocess use time {:.2f}s".format(time.time() - _start))

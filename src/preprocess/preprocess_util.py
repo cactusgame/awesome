@@ -4,6 +4,7 @@ import tensorflow_transform as tft
 from src.context import context
 from src.extract.feature_definition import *
 
+
 class PreprocessingFunction(object):
     """
     A transformer that preprocessed data in csv into TFT format columns
@@ -12,7 +13,7 @@ class PreprocessingFunction(object):
     def __init__(self):
         pass
 
-    def transform_to_tf(self, inputs):
+    def transform_to_tfrecord(self, inputs):
         """Preprocess raw input columns into transformed columns."""
         outputs = inputs.copy()
 

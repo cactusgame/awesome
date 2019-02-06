@@ -1,4 +1,13 @@
 project log:
+
+2019-02-07
+- add feature dynamically when parse .csv file
+- use different data definition for feature in DB and training stage. Because some of the features are generated dynamically
+
+***
+release `0.1`
+a version can fetch some simple data and do the preprocess transform
+
 2019-01-30:
 - make table columns ordered
 - add more ror metrics in DB.
