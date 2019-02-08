@@ -3,7 +3,7 @@ import tensorflow as tf
 from tensorflow_transform.tf_metadata import dataset_metadata
 from tensorflow_transform.tf_metadata import dataset_schema
 
-from src.extract.feature_definition import feature_definition
+from src.extract.feature_definition import feature_column_definition
 from src.context import context
 
 
@@ -12,7 +12,7 @@ class DataFormatter:
         self.ordered_columns = []
 
         RAW_DATA_FEATURE_SPEC = dict()
-        for key, value in feature_definition.iteritems():
+        for key, value in feature_column_definition.iteritems():
             if value[2] == "tf.FixedLenFeature":
                 RAW_DATA_FEATURE_SPEC[key] = tf.FixedLenFeature([], value[4])
             else:

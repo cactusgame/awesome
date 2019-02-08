@@ -2,7 +2,7 @@ import json
 import sys
 import sqlite3 as lite
 from pprint import pprint
-from src.extract.feature_definition import feature_definition
+from src.extract.feature_definition import feature_extractor_definition
 
 
 class FeatureSDK():
@@ -69,15 +69,13 @@ class FeatureSDK():
         according the `feature_definition` file
         :return:
         """
-        feature_dict = self.__load_feature_definition()
-
         self.__init_table()
 
-        feature_dict_sorted_keys = feature_dict.keys()
+        feature_dict_sorted_keys = feature_extractor_definition.keys()
         feature_dict_sorted_keys.sort()
         for key in feature_dict_sorted_keys:
             if not self.__has_feature_column(key):
-                self.__add_feature_column(key, feature_dict[key])
+                self.__add_feature_column(key, feature_extractor_definition[key])
 
     def __init_table(self):
         try:
@@ -102,13 +100,6 @@ class FeatureSDK():
         print("to add column name={} type={}".format(key, value_type[1]))
         c = self.connection.cursor()
         c.execute('ALTER TABLE {} ADD COLUMN {} {}'.format(self.table_name, key, value_type[1]))
-
-    def __load_feature_definition(self):
-        """
-        load feature definition from a file
-        :return:
-        """
-        return feature_definition
 
 
 if __name__ == "__main__":

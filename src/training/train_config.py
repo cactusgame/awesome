@@ -5,10 +5,10 @@ import commands
 # Some file names
 # name of the file which stores all experience
 exp_file_path = "data/features.csv"
-exp_target_file_path = "data/features_include_target.csv"
-exp_log_data_file = os.path.abspath(exp_file_path)
-exp_log_data_file_without_header = '{}.withoutheader'.format(exp_log_data_file)
-exp_log_data_file_shuf = '{}.shuf'.format(exp_log_data_file)
+exp_target_file_path = "data/features_all.csv"
+exp_log_data_file = os.path.abspath(exp_target_file_path)
+exp_log_data_file_without_header = '{}.withoutheader'.format(exp_file_path)
+exp_log_data_file_shuf = '{}.shuf'.format(exp_file_path)
 exp_log_data_file_train = '{}.train'.format(exp_file_path)
 exp_log_data_file_eval = '{}.eval'.format(exp_file_path)
 exp_log_data_file_train_shard = '{}.shard'.format(exp_log_data_file_train)

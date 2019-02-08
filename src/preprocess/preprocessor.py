@@ -13,6 +13,8 @@ from tensorflow_transform import coders as tft_coders
 from apache_beam.io import textio
 from apache_beam.runners import DirectRunner
 from src.context import context
+from src.extract.feature_definition import new_feature_column_names
+from src.extract.feature_definition import new_feature_column_functions
 from src.utils.file_util import FileUtil
 from src.training.train_config import *
 from src.preprocess.preprocess_util import MapAndFilterErrors
@@ -61,28 +63,24 @@ class Preprocessor:
         add target keys for training
         :return:
         """
-        target_key = 'ror_20_days'
-        new_target_key = 'ror_20_days_bool'
-
         # output
         output = open(exp_target_file_path, 'w')
         writer = csv.writer(output, delimiter=',')
-        input = open(exp_file_path, 'rb')
-        reader = csv.reader(input, delimiter=',')
+
+        inputfile = open(exp_file_path, 'rb')
+        reader = csv.reader(inputfile, delimiter=',')
 
         header = None
-        target_index = -1
         for row in reader:
             if header is None:
+                for feature_column_name in new_feature_column_names:
+                    row.append(feature_column_name)
                 header = row
-                target_index = header.index(target_key)
-                row.append(new_target_key)
             else:
-                # notice: you must convert value from str to float or int
-                r = 1 if float(row[target_index]) > 0 else 0
-                row.append(r)
+                for feature_column_function in new_feature_column_functions:
+                    row.append(feature_column_function(header,row))
             writer.writerow(row)
-        input.close()
+        inputfile.close()
         output.close()
 
     def shuf(self):
