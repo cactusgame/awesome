@@ -1,4 +1,6 @@
 project log:
+2019-02-09
+- todo: `time` in feature_column, remove other useless column
 
 2019-02-07
 - add feature dynamically when parse .csv file

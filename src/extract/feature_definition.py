@@ -4,6 +4,23 @@ feature_definition_config = {}
 feature_definition_config["close_n_days_before"] = 3
 feature_definition_config["ror_n_days_after"] = 60
 
+# pick up all features we will use
+valid_feature_column_definition = []
+valid_feature_column_definition += ["close_b0", "close_b1", "close_b2"]
+valid_feature_column_definition += ["share_id"]
+valid_feature_column_definition += ["ror_20_days","ror_20_days_bool"]
+
+# FEATURE_KEYS
+FEATURE_KEYS = []
+FEATURE_KEYS += ["close_b0", "close_b1", "close_b2"]
+FEATURE_KEYS += ["share_id"]
+
+# TARGET_KEYS
+TARGET_KEYS = []
+TARGET_KEYS += ["ror_05_days","ror_10_days","ror_20_days","ror_40_days","ror_60_days","ror_20_days_bool"]
+
+
+
 # feature_extractor_definition is only used for feature extractor,
 # items in the `feature_extractor_definition` will create a column in database
 feature_extractor_definition = {}
@@ -35,10 +52,13 @@ feature_extractor_definition["ror_60_days"] = ("float", "REAL", "tf.FixedLenFeat
 
 # feature_column_definition is used for preprocessing and training, it is include the feature added dynamically
 # all items in `feature_column_definition` are not stored in database
+TARGET_KEY_ROR_20_DATS_BOOL = 'ror_20_days_bool'
+
 feature_column_definition = {}
 for key, value in feature_extractor_definition.iteritems():
-    feature_column_definition[key] = value
-feature_column_definition["ror_20_days_bool"] = ("bool", "None", "tf.FixedLenFeature", FORMAT_NUMBER, tf.int64)
+    if key in valid_feature_column_definition:
+        feature_column_definition[key] = value
+feature_column_definition[TARGET_KEY_ROR_20_DATS_BOOL] = ("bool", "None", "tf.FixedLenFeature", FORMAT_NUMBER, tf.int64)
 
 
 def ror_20_days_bool_function(header, row):
@@ -47,7 +67,7 @@ def ror_20_days_bool_function(header, row):
 
 
 # feature columns added dynamically
-new_feature_column_names = ['ror_20_days_bool']
+new_feature_column_names = [TARGET_KEY_ROR_20_DATS_BOOL]
 # feature columns decider
 new_feature_column_functions = [ror_20_days_bool_function]
 
@@ -55,9 +75,13 @@ new_feature_column_functions = [ror_20_days_bool_function]
 number_keys = []
 vocabulary_keys = []
 for key, value in feature_extractor_definition.iteritems():
-    if value[3] == FORMAT_NUMBER:
-        number_keys.append(key)
-    elif value[3] == FORMAT_VOCABULARY:
-        vocabulary_keys.append(key)
-    else:
-        raise Exception("unsupported feature types in TFT")
+    if key in valid_feature_column_definition:
+        if value[3] == FORMAT_NUMBER:
+            number_keys.append(key)
+        elif value[3] == FORMAT_VOCABULARY:
+            vocabulary_keys.append(key)
+        else:
+            raise Exception("unsupported feature types in TFT")
+
+
+# todo: distingwish feature,target, enable,disable

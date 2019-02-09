@@ -4,23 +4,50 @@ import tensorflow as tf
 import numpy as np
 import multiprocessing as mp
 
-from src.extract.feature_definition import number_keys
-from src.extract.feature_definition import vocabulary_keys
+from tensorflow.python.ops.losses.losses_impl import Reduction
+from tensorflow.python.saved_model import signature_constants
 
+from src.extract.feature_definition import *
+from src.training.train_config import *
+
+
+class SignatureKeys(object):
+    """ Enum for model signature keys """
+
+    INPUT = 'inputs'
+    OUTPUT = 'outputs'
+    PREDICTIONS = 'predictions'
+
+class SignatureDefs(object):
+    """ Enum for model signature defs """
+
+    ANALYSIS_ROR_20 = 'analysis_ror_20'
+    ANALYSIS_Q = 'analysis_q'
+    DEFAULT = signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY
 
 class Model:
+    class MetricKeys(object):
+        Q_AUROC = 'metrics_{}/Q_AUC_ROC'
+        Q_PRAUC = 'metrics_{}/Q_AUC_PR'
+        Q_RMSE = 'metrics_{}/Q_RMSE'
+
+    # Classification and regresion target definition
+    CLASSIF_TARGETS = [TARGET_KEY_ROR_20_DATS_BOOL]
+
+    # ================================================
+
     def __init__(self):
         self.logger = logging.getLogger('tensorflow')
 
-    def make_target(self, transformed_features, data_formatter):
+    def __make_target(self, transformed_features):
         """ Target/reward definition """
 
-        transformed_target0 = tf.cast(tf.rint(transformed_features[data_formatter.KEY_ITEM_USED_BOOL]), tf.int64)
-        transformed_target1 = tf.cast(tf.rint(transformed_features[data_formatter.KEY_PLAY_AGAIN]), tf.int64)
+        # transformed_target0 = tf.cast(tf.rint(transformed_features[TARGET_KEY_ROR_20_DATS_BOOL]), tf.int64)
+        transformed_target0 = transformed_features[TARGET_KEY_ROR_20_DATS_BOOL]
 
-        return transformed_target0, transformed_target1
+        return transformed_target0
 
-    def make_training_input_fn(self, tf_transform_output, transformed_examples, batch_size, data_formatter):
+    def make_training_input_fn(self, tf_transform_output, transformed_examples, batch_size):
         """ Estimator input function generator that reads transformed input data.
         :param tf_transform_output: tf.Transform output graph wrapper
         :param transformed_examples: file name
@@ -29,9 +56,9 @@ class Model:
         """
 
         def parse_function(transformed_features):
-            transformed_target = self.make_target(transformed_features, data_formatter)
+            transformed_target = self.__make_target(transformed_features)
             stripped_transformed_features = {k: transformed_features[k] for k in transformed_features if
-                                             (k not in data_formatter.TARGET_KEYS)}
+                                             (k in FEATURE_KEYS)}
             return stripped_transformed_features, transformed_target
 
         def input_fn():
@@ -45,10 +72,9 @@ class Model:
                 reader_num_threads=mp.cpu_count(),
                 parser_num_threads=mp.cpu_count(),
                 prefetch_buffer_size=1,
-                # Shuffle uses a running buffer of `shuffle_buffer_size`, so only items within each buffer
-                # of `shuffle_buffer_size` are shuffled. Best to make sure the dataset is shuffled beforehand.
-                shuffle_buffer_size=100 * 1000,
+                shuffle_buffer_size=SHUFFLE_BUFFER_SIZE,
                 shuffle=True)
+            # todo: to see the doc about dataset how to map the original data
             dataset = dataset.map(parse_function, num_parallel_calls=mp.cpu_count())
 
             iterator = dataset.make_one_shot_iterator()
@@ -88,51 +114,15 @@ class Model:
         def model_fn(features, labels, mode):
             """
             the model_fn feeds into Estimator
-            :param features:
-            :param labels:
-            :param mode:
-            :return:
             """
             feature_columns = self.create_feature_columns(tf_transform_output)
-
-            # Currently we don't have categorical LF, so ignore (otherwise it errors out).
-            feature_columns_lf = [e for e in feature_columns if
-                                  (FeatureTags.LF in e.name and
-                                   data_formatter.KEY_FEAT_VAL_VERSION not in e.name)]
-            feature_columns_uf_num = [
-                e for e in feature_columns if
-                ((FeatureTags.LF not in e.name and data_formatter.KEY_FEAT_VAL_VERSION not in e.name) and
-                 isinstance(e, _NumericColumn))]
-            feature_columns_uf_cat = [
-                e for e in feature_columns if
-                ((FeatureTags.LF not in e.name and data_formatter.KEY_FEAT_VAL_VERSION not in e.name) and
-                 not isinstance(e, _NumericColumn))]
-
-            input_layer_lf = tf.feature_column.input_layer(
-                features=features, feature_columns=feature_columns_lf)
-            input_layer_uf_num = tf.feature_column.input_layer(
-                features=features, feature_columns=feature_columns_uf_num)
-            input_layer_uf_cat = tf.feature_column.input_layer(
-                features=features, feature_columns=feature_columns_uf_cat)
-
-            if mode == tf.estimator.ModeKeys.TRAIN:
-                input_layer_lf = input_layer_lf + tf.random_normal(
-                    shape=tf.shape(input_layer_lf), mean=0.0, stddev=p.INPUT_NOISE_STD, dtype=tf.float32)
-                input_layer_uf_num = input_layer_uf_num + tf.random_normal(
-                    shape=tf.shape(input_layer_uf_num), mean=0.0, stddev=p.INPUT_NOISE_STD, dtype=tf.float32)
-
-            input_layer_uf_num = tf.layers.dropout(
-                inputs=input_layer_uf_num,
-                rate=p.DROP_UF_PROB,
-                training=(mode == tf.estimator.ModeKeys.TRAIN))
-            input_layer_uf = tf.concat([input_layer_uf_num, input_layer_uf_cat], axis=1)
-
-            input_layer = tf.concat([input_layer_uf, input_layer_lf, input_layer_fvv], axis=1)
+            input_layer = tf.feature_column.input_layer(
+                features=features, feature_columns=feature_columns)
 
             # Network structure
             # Batch norm after linear combination and before activation. Dropout after activation.
             h1 = tf.layers.Dense(
-                units=p.MODEL_NUM_UNIT_SCALE * 4,
+                units=MODEL_NUM_UNIT_SCALE * 4,
                 activation=None,
                 kernel_initializer=tf.glorot_normal_initializer(),
                 bias_initializer=tf.zeros_initializer()
@@ -141,10 +131,11 @@ class Model:
             h1_act = tf.nn.relu(h1_bn)
             h1_do = tf.layers.dropout(
                 inputs=h1_act,
-                rate=p.DROPOUT_PROB,
+                rate=DROPOUT_PROB,
                 training=(mode == tf.estimator.ModeKeys.TRAIN))
+
             h2 = tf.layers.Dense(
-                units=p.MODEL_NUM_UNIT_SCALE * 2,
+                units=MODEL_NUM_UNIT_SCALE * 2,
                 activation=None,
                 kernel_initializer=tf.glorot_normal_initializer(),
                 bias_initializer=tf.zeros_initializer()
@@ -153,12 +144,12 @@ class Model:
             h2_act = tf.nn.relu(h2_bn)
             h2_do = tf.layers.dropout(
                 inputs=h2_act,
-                rate=p.DROPOUT_PROB,
+                rate=DROPOUT_PROB,
                 training=(mode == tf.estimator.ModeKeys.TRAIN))
 
-            # Head for item_used
+            # Head for label1
             h30 = tf.layers.Dense(
-                units=p.MODEL_NUM_UNIT_SCALE,
+                units=MODEL_NUM_UNIT_SCALE,
                 activation=None,
                 kernel_initializer=tf.glorot_normal_initializer(),
                 bias_initializer=tf.zeros_initializer()
@@ -167,7 +158,7 @@ class Model:
             h3_act0 = tf.nn.relu(h3_bn0)
             h3_do0 = tf.layers.dropout(
                 inputs=h3_act0,
-                rate=p.DROPOUT_PROB,
+                rate=DROPOUT_PROB,
                 training=(mode == tf.estimator.ModeKeys.TRAIN))
             logits0 = tf.layers.Dense(
                 units=2,
@@ -177,71 +168,35 @@ class Model:
             )(h3_do0)
             softmax0 = tf.contrib.layers.softmax(logits0)
 
-            # Head for play_again
-            h31 = tf.layers.Dense(
-                units=p.MODEL_NUM_UNIT_SCALE,
-                activation=None,
-                kernel_initializer=tf.glorot_normal_initializer(),
-                bias_initializer=tf.zeros_initializer()
-            )(h2_do)
-            h3_bn1 = tf.layers.batch_normalization(h31, training=(mode == tf.estimator.ModeKeys.TRAIN))
-            h3_act1 = tf.nn.relu(h3_bn1)
-            h3_do1 = tf.layers.dropout(
-                inputs=h3_act1,
-                rate=p.DROPOUT_PROB,
-                training=(mode == tf.estimator.ModeKeys.TRAIN))
-            logits1 = tf.layers.Dense(
-                units=2,
-                activation=None,
-                kernel_initializer=tf.glorot_normal_initializer(),
-                bias_initializer=tf.zeros_initializer()
-            )(h3_do1)
-            softmax1 = tf.contrib.layers.softmax(logits1)
-
             # Q-values: a combination of the `item_used` Q-value (`softmax0`) and
             # the `play_again` Q-value (`softmax1`).
             # We normalize and then add both Q-value functions together.
-            q_values = (tf.div(softmax0[:, 1] - tf.reduce_min(softmax0[:, 1]),
-                               tf.reduce_max(softmax0[:, 1]) - tf.reduce_min(softmax0[:, 1])) +
-                        tf.div(softmax1[:, 1] - tf.reduce_min(softmax1[:, 1]),
-                               tf.reduce_max(softmax1[:, 1]) - tf.reduce_min(softmax1[:, 1]))) / tf.constant(2.)
+            q_values = tf.div(softmax0[:, 1] - tf.reduce_min(softmax0[:, 1]),
+                              tf.reduce_max(softmax0[:, 1]) - tf.reduce_min(softmax0[:, 1]))
 
+            # todo:
             if mode == tf.estimator.ModeKeys.TRAIN or mode == tf.estimator.ModeKeys.EVAL:
                 labels0 = labels[0]
-                labels1 = labels[1]
                 onehot_labels0 = tf.one_hot(labels0, depth=2)
-                onehot_labels1 = tf.one_hot(labels1, depth=2)
 
-                # `item_used` loss definition: weighting to correct for class imbalances.
+                # `ror_20_days_bool` loss definition: weighting to correct for class imbalances.
                 unweighted_losses0 = tf.losses.softmax_cross_entropy(
                     onehot_labels=onehot_labels0, logits=logits0, reduction=Reduction.NONE)
                 class_weights0 = tf.constant([[1., 1.]])
                 sample_weights0 = tf.reduce_sum(tf.multiply(onehot_labels0, class_weights0), 1)
                 loss0 = tf.reduce_mean(unweighted_losses0 * sample_weights0)
 
-                # `play_again` loss definition: weighting to correct for class imbalances.
-                unweighted_losses1 = tf.losses.softmax_cross_entropy(
-                    onehot_labels=onehot_labels1, logits=logits1, reduction=Reduction.NONE)
-                class_weights1 = tf.constant([[1., 1.]])
-                sample_weights1 = tf.reduce_sum(tf.multiply(onehot_labels1, class_weights1), 1)
-                loss1 = tf.reduce_mean(unweighted_losses1 * sample_weights1)
-
-                loss = loss0 + loss1
+                loss = loss0
 
                 # Metrics
                 auroc0 = tf.metrics.auc(labels0, softmax0[:, 1], num_thresholds=10000, curve='ROC')
                 prauc0 = tf.metrics.auc(labels0, softmax0[:, 1], num_thresholds=10000, curve='PR',
                                         summation_method='careful_interpolation')
 
-                # Metrics
-                auroc1 = tf.metrics.auc(labels1, softmax1[:, 1], num_thresholds=10000, curve='ROC')
-                prauc1 = tf.metrics.auc(labels1, softmax1[:, 1], num_thresholds=10000, curve='PR',
-                                        summation_method='careful_interpolation')
-
             if mode == tf.estimator.ModeKeys.TRAIN:
 
                 # MSE loss, optimized with Adam
-                optimizer = tf.train.AdamOptimizer(1e-4)
+                optimizer = tf.train.AdamOptimizer(FIX_LEARNING_RATE)
 
                 # This is to make sure we also update the rolling mean/var for `tf.layers.batch_normalization`
                 # (which is stored outside of the Estimator scope).
@@ -251,8 +206,7 @@ class Model:
 
                 # TensorBoard performance metrics.
                 with tf.name_scope('losses'):
-                    tf.summary.scalar('loss_item_used', loss0)
-                    tf.summary.scalar('loss_play_again', loss1)
+                    tf.summary.scalar('loss_ror_20', loss0)
 
                 # TensorBoard model evolution over time.
                 with tf.name_scope('layer_1'):
@@ -267,50 +221,28 @@ class Model:
                     tf.summary.histogram('weights', weights)
                     tf.summary.histogram('biases', biases)
                     tf.summary.histogram('activations', h2_act)
-
-                with tf.name_scope('layer_3_item_used'):
+                with tf.name_scope('layer_3_ror_20'):
                     weights = tf.get_default_graph().get_tensor_by_name(os.path.split(h30.name)[0] + '/kernel:0')
                     biases = tf.get_default_graph().get_tensor_by_name(os.path.split(h30.name)[0] + '/bias:0')
                     tf.summary.histogram('weights', weights)
                     tf.summary.histogram('biases', biases)
                     tf.summary.histogram('activations', h3_act0)
-
-                with tf.name_scope('layer_3_play_again'):
-                    weights = tf.get_default_graph().get_tensor_by_name(os.path.split(h31.name)[0] + '/kernel:0')
-                    biases = tf.get_default_graph().get_tensor_by_name(os.path.split(h31.name)[0] + '/bias:0')
-                    tf.summary.histogram('weights', weights)
-                    tf.summary.histogram('biases', biases)
-                    tf.summary.histogram('activations', h3_act1)
-
-                with tf.name_scope('logits_item_used'):
+                with tf.name_scope('logits_ror_20'):
                     weights = tf.get_default_graph().get_tensor_by_name(
                         os.path.split(logits0.name)[0] + '/kernel:0')
                     biases = tf.get_default_graph().get_tensor_by_name(os.path.split(logits0.name)[0] + '/bias:0')
                     tf.summary.histogram('weights', weights)
                     tf.summary.histogram('biases', biases)
                     tf.summary.histogram('activations', h3_act0)
-                with tf.name_scope('q_values_item_used'):
+                with tf.name_scope('q_values_ror_20'):
                     tf.summary.histogram('q0', softmax0[:, 0])
                     tf.summary.histogram('q1', softmax0[:, 1])
 
-                with tf.name_scope('logits_play_again'):
-                    weights = tf.get_default_graph().get_tensor_by_name(
-                        os.path.split(logits1.name)[0] + '/kernel:0')
-                    biases = tf.get_default_graph().get_tensor_by_name(os.path.split(logits1.name)[0] + '/bias:0')
-                    tf.summary.histogram('weights', weights)
-                    tf.summary.histogram('biases', biases)
-                    tf.summary.histogram('activations', h3_act1)
-                with tf.name_scope('q_values_play_again'):
-                    tf.summary.histogram('q0', softmax1[:, 0])
-                    tf.summary.histogram('q1', softmax1[:, 1])
-
                 # Log a few predictions.
                 target_and_q0 = tf.stack([tf.cast(labels0, tf.float32), softmax0[:, 1]], axis=1)
-                target_and_q1 = tf.stack([tf.cast(labels1, tf.float32), softmax1[:, 1]], axis=1)
                 logging_hook = tf.train.LoggingTensorHook({
-                    'target_and_q_item_used': target_and_q0[0:10, :],
-                    'target_and_q_play_again': target_and_q1[0:10, :],
-                }, every_n_iter=p.LOG_FREQ_STEP)
+                    'target_and_q_ror_20': target_and_q0[0:10, :],
+                }, every_n_iter=LOG_FREQ_STEP)
 
                 return tf.estimator.EstimatorSpec(
                     mode=mode,
@@ -319,16 +251,13 @@ class Model:
                     training_hooks=[logging_hook])
 
             elif mode == tf.estimator.ModeKeys.EVAL:
-
                 return tf.estimator.EstimatorSpec(
                     mode=mode,
                     loss=loss,
                     # These metrics are computed over the complete eval dataset.
                     eval_metric_ops={
-                        'metrics_item_used/AUC_ROC': auroc0,
-                        'metrics_item_used/AUC_PR': prauc0,
-                        'metrics_play_again/AUC_ROC': auroc1,
-                        'metrics_play_again/AUC_PR': prauc1,
+                        'metrics_ror_20/AUC_ROC': auroc0,
+                        'metrics_ror_20/AUC_PR': prauc0,
                     }, predictions={SignatureKeys.PREDICTIONS: q_values})
 
             elif mode == tf.estimator.ModeKeys.PREDICT:
@@ -338,24 +267,15 @@ class Model:
                 `epsilon_greedy_probability` probability with a random value in [0, 1000).
                 """
 
-                rnd = tf.random_uniform(
-                    shape=(p.SEEDS_K_FINAL,), minval=0, maxval=1, dtype=tf.float32)
-                rnd_seed_vector = tf.random_uniform(
-                    shape=(p.SEEDS_K_FINAL,), minval=0, maxval=p.SEED_LIST_LENGTH, dtype=tf.int32)
                 # Indices of top `p.TOP_SEEDS_K` Q-values.
-                top_q_idx = tf.nn.top_k(q_values, k=p.TOP_SEEDS_K)[1]
-                sel_q_idx = tf.random_shuffle(top_q_idx)[0:p.SEEDS_K_FINAL]
-                comparison = tf.less(rnd, tf.constant(p.EPSILON_GREEDY_PROBABILITY))
+                top_q_idx = tf.nn.top_k(q_values, k=TOP_SEEDS_K)[1]
+                sel_q_idx = tf.random_shuffle(top_q_idx)[0:SEEDS_K_FINAL]
                 # Since seeds are in [1, `p.SEEDS_K_FINAL`], we have to add 1 to the index.
-                predictions = tf.where(comparison, rnd_seed_vector, sel_q_idx) + 1
+                predictions = sel_q_idx + 1
 
-                class_labels_item_used = tf.reshape(
+                class_labels_ror_20 = tf.reshape(
                     tf.tile(tf.constant(['0', '1']), (tf.shape(softmax0)[0],)),
                     (tf.shape(softmax0)[0], 2))
-
-                class_labels_play_again = tf.reshape(
-                    tf.tile(tf.constant(['0', '1']), (tf.shape(softmax1)[0],)),
-                    (tf.shape(softmax1)[0], 2))
 
                 export_outputs = {
                     # Default output (used in serving-infra)
@@ -366,15 +286,11 @@ class Model:
                     # * q_values: Q-values for all `SEED_LIST_LENGTH` seeds.
                     SignatureDefs.DEFAULT: tf.estimator.export.PredictOutput(
                         {SignatureKeys.OUTPUT: predictions,
-                         "eps_rnd_selection": comparison,
                          "q_values": tf.transpose(q_values)}),
                     # Analysis output
-                    SignatureDefs.ANALYSIS_ITEM_USED: tf.estimator.export.ClassificationOutput(
+                    SignatureDefs.ANALYSIS_ROR_20: tf.estimator.export.ClassificationOutput(
                         scores=softmax0,
-                        classes=class_labels_item_used),
-                    SignatureDefs.ANALYSIS_PLAY_AGAIN: tf.estimator.export.ClassificationOutput(
-                        scores=softmax1,
-                        classes=class_labels_play_again),
+                        classes=class_labels_ror_20),
                     SignatureDefs.ANALYSIS_Q: tf.estimator.export.RegressionOutput(
                         value=q_values)
                 }
@@ -385,3 +301,21 @@ class Model:
                     export_outputs=export_outputs)
 
         return model_fn
+
+    def print_model_model_params(self, working_dir):
+        # Import the model back with our own Session (rather than Estimator's) to read the number
+        # of parameters used.
+        with tf.Session() as sess:
+            checkpoint = tf.train.get_checkpoint_state(working_dir)
+            saver = tf.train.import_meta_graph(checkpoint.model_checkpoint_path + '.meta')
+            saver.restore(sess, checkpoint.model_checkpoint_path)
+            total_parameters = 0
+            for variable in tf.trainable_variables():
+                # shape is an array of tf.Dimension
+                shape = variable.get_shape()
+                variable_parameters = 1
+                for dim in shape:
+                    variable_parameters *= dim.value
+                self.logger.info('var={}: shape={} num_params={}'.format(variable.name, shape, variable_parameters))
+                total_parameters += variable_parameters
+            self.logger.info('total_params={}'.format(total_parameters))

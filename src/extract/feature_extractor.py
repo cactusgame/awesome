@@ -131,7 +131,7 @@ if __name__ == "__main__":
     # extractor.test_extract()
     # for test stage1, we should only extract recent 4000 days's data
     # extractor.extract_all(start_date='20050101', end_date='20181231')
-    extractor.extract_one_share(share_id='000001.SZ', start_date='20180101', end_date='20181231')
+    extractor.extract_one_share(share_id='000001.SZ', start_date='20050101', end_date='20181231')
 
     # upload the db after extract the features
     FileUtil.coscmd_upload(os.path.abspath("awesome.db"))

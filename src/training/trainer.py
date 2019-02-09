@@ -28,8 +28,8 @@ class Trainer:
             keep_checkpoint_max=1,
             # Checkpoints are already saved at each eval step.
             save_checkpoints_secs=1000000000,
-            log_step_count_steps=1000,
-            save_summary_steps=1000,
+            log_step_count_steps=100,
+            save_summary_steps=100,
         )
 
         estimator = tf.estimator.Estimator(model_fn=model_fn, model_dir=TARGET_DIR, config=run_config)
@@ -70,7 +70,7 @@ class Trainer:
             input_fn=eval_train_input_fn,
             steps=np.maximum(num_train_samples / EVAL_BATCH_SIZE / EVAL_TRAIN_SUBSAMPLE_FACTOR, 1),
             name='train')
-        eval_eval_metrics = estimator.evaluate(
+        estimator.evaluate(
             input_fn=eval_input_fn, steps=np.maximum(num_eval_samples / EVAL_BATCH_SIZE, 1), name='eval')
 
         # This is the actual training loop. One training step is a gradient step over a minibatch.
@@ -91,7 +91,7 @@ class Trainer:
                 steps=min(TRAIN_MAX_STEPS - train_steps, TRAIN_INC_STEPS))
 
             # Evaluation on the training set to get accurate performance metric values.
-            eval_train_metrics = estimator.evaluate(
+            estimator.evaluate(
                 input_fn=eval_train_input_fn,
                 steps=num_train_samples / EVAL_BATCH_SIZE / EVAL_TRAIN_SUBSAMPLE_FACTOR, name='train')
 

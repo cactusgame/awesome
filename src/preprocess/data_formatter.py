@@ -4,6 +4,7 @@ from tensorflow_transform.tf_metadata import dataset_metadata
 from tensorflow_transform.tf_metadata import dataset_schema
 
 from src.extract.feature_definition import feature_column_definition
+from src.extract.feature_definition import valid_feature_column_definition
 from src.context import context
 
 
@@ -13,10 +14,11 @@ class DataFormatter:
 
         RAW_DATA_FEATURE_SPEC = dict()
         for key, value in feature_column_definition.iteritems():
-            if value[2] == "tf.FixedLenFeature":
-                RAW_DATA_FEATURE_SPEC[key] = tf.FixedLenFeature([], value[4])
-            else:
-                context.logger.error("unsupport key : " + key)
+            if key in valid_feature_column_definition:
+                if value[2] == "tf.FixedLenFeature":
+                    RAW_DATA_FEATURE_SPEC[key] = tf.FixedLenFeature([], value[4])
+                else:
+                    context.logger.error("unsupport key : " + key)
 
         self.RAW_DATA_METADATA = dataset_metadata.DatasetMetadata(
             dataset_schema.from_feature_spec(RAW_DATA_FEATURE_SPEC))
