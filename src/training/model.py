@@ -6,10 +6,13 @@ import multiprocessing as mp
 
 from tensorflow.python.ops.losses.losses_impl import Reduction
 from tensorflow.python.saved_model import signature_constants
+from tensorflow_transform.saved import saved_transform_io
+from tensorflow_transform.beam.tft_beam_io import transform_fn_io
 
 from src.context import context
 from src.extract.feature_definition import *
 from src.training.train_config import *
+from src.preprocess.data_formatter import DataFormatter
 
 
 class SignatureKeys(object):
@@ -84,6 +87,36 @@ class Model:
             return features, labels
 
         return input_fn
+
+    def make_analysis_input_fn(self,tf_transform_dir):
+
+        data_formatter = DataFormatter()
+
+        def analysis_input_fn():
+            # Get the raw feature spec for analysis
+            raw_feature_spec = data_formatter.RAW_DATA_METADATA.schema.as_feature_spec()
+
+            serialized_tf_example = tf.placeholder(dtype=tf.string, shape=[None])
+
+            # A tf.parse_example operator will parse raw input files according to the analysis
+            # spec `raw_feature_spec`.
+            features = tf.parse_example(serialized_tf_example, raw_feature_spec)
+
+            # Now that we have our raw examples, process them through the tf-transform
+            # function computed during the preprocessing step.
+            _, transformed_features = (saved_transform_io.partially_apply_saved_transform(
+                os.path.join(tf_transform_dir, transform_fn_io.TRANSFORM_FN_DIR), features))
+
+            # Remove target keys from feature list
+            # todo: not sure how to filter Target keys : enabled_target_keys?
+            # [transformed_features.pop(key) for key in data_formatter.TARGET_KEYS]
+
+            # Restriction by tfma: key ust be `SignatureKeys.EXAMPLES`
+            receiver_tensors = {SignatureKeys.INPUT: serialized_tf_example}
+
+            return tf.estimator.export.ServingInputReceiver(transformed_features, receiver_tensors)
+
+        return analysis_input_fn
 
     def create_feature_columns(self, tf_transform_output):
         """

@@ -63,7 +63,7 @@ LOG_FREQ_STEP = 1000
 # Select top `TOP_SEEDS_K` seeds and randomize
 TOP_SEEDS_K = 20
 # Recommend top `TOP_SEEDS_K` seeds.
-SEEDS_K_FINAL = 5
+SEEDS_K_FINAL = 2
 
 ## Variable
 if os.path.isfile(exp_log_data_file_train):

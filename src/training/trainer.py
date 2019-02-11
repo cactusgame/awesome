@@ -51,6 +51,9 @@ class Trainer:
             eval_tfrecord_fname_out + '*',
             EVAL_BATCH_SIZE)
 
+        analysis_input_fn = self.model.make_analysis_input_fn(
+            TARGET_DIR)
+
         # analysis_input_fn = self.model.make_analysis_input_fn(
         #     TARGET_DIR)
 
@@ -123,11 +126,8 @@ class Trainer:
         # estimator.export(ANALYSIS_DIR, analysis_input_fn)
         self.model.print_model_model_params(TARGET_DIR)
 
-        # Export the feature and wrapped_feature lists.
-        # export_feature_list(serving_export_dir, data_formatter)
-        #
-        # # Export current commit
-        # export_code_commit(TARGET_DIR)
+        # estimator.export_savedmodel(TARGET_DIR, analysis_input_fn,
+        #                             strip_default_attrs=True)
 
 
 if __name__ == "__main__":
