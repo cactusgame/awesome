@@ -12,10 +12,11 @@ from src.training.train_config import *
 
 class Trainer:
     def __init__(self):
-        self.logger = logging.getLogger('tensorflow')
+        self.logger = context.tflogger
         self.model = Model()
 
     def train(self):
+        self.logger.info("start to train")
         # number of train/eval samples in tfrecord, but not the original file, because some of them of invalid
         # num_train_samples,        num_eval_samples  are init in train_config.py
 
@@ -28,8 +29,8 @@ class Trainer:
             keep_checkpoint_max=1,
             # Checkpoints are already saved at each eval step.
             save_checkpoints_secs=1000000000,
-            log_step_count_steps=100,
-            save_summary_steps=100,
+            log_step_count_steps=1000,
+            save_summary_steps=1000,
         )
 
         estimator = tf.estimator.Estimator(model_fn=model_fn, model_dir=TARGET_DIR, config=run_config)

@@ -22,5 +22,10 @@ class AwesomeContext:
         rootLogger.addHandler(consoleHandler)
         self.logger = rootLogger
 
+        tflogger = logging.getLogger('tensorflow')
+        tflogger.propagate = False
+        tflogger.setLevel(logging.INFO)
+        self.tflogger = tflogger
+
 
 context = AwesomeContext()

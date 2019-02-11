@@ -7,6 +7,7 @@ import multiprocessing as mp
 from tensorflow.python.ops.losses.losses_impl import Reduction
 from tensorflow.python.saved_model import signature_constants
 
+from src.context import context
 from src.extract.feature_definition import *
 from src.training.train_config import *
 
@@ -27,9 +28,9 @@ class SignatureDefs(object):
 
 class Model:
     class MetricKeys(object):
-        Q_AUROC = 'metrics_{}/Q_AUC_ROC'
-        Q_PRAUC = 'metrics_{}/Q_AUC_PR'
-        Q_RMSE = 'metrics_{}/Q_RMSE'
+        Q_AUROC = 'metrics_{}/AUC_ROC'  # for example: metrics_ror_20_days_bool/Q_AUC_ROC, metrics_ror_20_days_bool/Q_AUC_PR
+        Q_PRAUC = 'metrics_{}/AUC_PR'
+        Q_RMSE = 'metrics_{}/RMSE'
 
     # Classification and regresion target definition
     CLASSIF_TARGETS = [TARGET_KEY_ROR_20_DATS_BOOL]
@@ -37,7 +38,7 @@ class Model:
     # ================================================
 
     def __init__(self):
-        self.logger = logging.getLogger('tensorflow')
+        self.logger = context.tflogger
 
     def __make_target(self, transformed_features):
         """ Target/reward definition """
@@ -58,7 +59,7 @@ class Model:
         def parse_function(transformed_features):
             transformed_target = self.__make_target(transformed_features)
             stripped_transformed_features = {k: transformed_features[k] for k in transformed_features if
-                                             (k in FEATURE_KEYS)}
+                                             (k in enabled_feature_keys)}
             return stripped_transformed_features, transformed_target
 
         def input_fn():
@@ -96,7 +97,7 @@ class Model:
         # CATEGORY columns: tft already built vocabs
         # We define 1 additional bucket for out-of-vocab (OOV) values. This
         # way, we are able to cope with OOV-values at serving time.
-        for key in vocabulary_keys:
+        for key in enabled_vocabulary_features:
             fc = tf.feature_column.indicator_column(
                 tf.feature_column.categorical_column_with_vocabulary_file(
                     key=key,
@@ -105,7 +106,7 @@ class Model:
             base_features_columns.append(fc)
 
         # NUM_INT and NUM_FLOAT, already converted to numeric value by tft and scaled
-        base_features_columns += [tf.feature_column.numeric_column(key, default_value=0.) for key in number_keys]
+        base_features_columns += [tf.feature_column.numeric_column(key, default_value=0.) for key in enabled_number_features]
 
         self.logger.info('len of features_columns: {}'.format(len(base_features_columns)))
         return base_features_columns
@@ -174,11 +175,11 @@ class Model:
             q_values = tf.div(softmax0[:, 1] - tf.reduce_min(softmax0[:, 1]),
                               tf.reduce_max(softmax0[:, 1]) - tf.reduce_min(softmax0[:, 1]))
 
-            # todo:
-            if mode == tf.estimator.ModeKeys.TRAIN or mode == tf.estimator.ModeKeys.EVAL:
-                labels0 = labels[0]
-                onehot_labels0 = tf.one_hot(labels0, depth=2)
 
+            if mode == tf.estimator.ModeKeys.TRAIN or mode == tf.estimator.ModeKeys.EVAL:
+                labels0 = labels # int64 Notice: use labels but not labels[0], because we only have 1 label now.
+                onehot_labels0 = tf.one_hot(labels0, depth=2) # shape(2,0) should [batch_size, num_classes]  , logit should [batch_size, num_classes]
+                                                            # logit(?,2)
                 # `ror_20_days_bool` loss definition: weighting to correct for class imbalances.
                 unweighted_losses0 = tf.losses.softmax_cross_entropy(
                     onehot_labels=onehot_labels0, logits=logits0, reduction=Reduction.NONE)
@@ -256,8 +257,8 @@ class Model:
                     loss=loss,
                     # These metrics are computed over the complete eval dataset.
                     eval_metric_ops={
-                        'metrics_ror_20/AUC_ROC': auroc0,
-                        'metrics_ror_20/AUC_PR': prauc0,
+                        'metrics_ror_20_days_bool/AUC_ROC': auroc0,
+                        'metrics_ror_20_days_bool/AUC_PR': prauc0,
                     }, predictions={SignatureKeys.PREDICTIONS: q_values})
 
             elif mode == tf.estimator.ModeKeys.PREDICT:

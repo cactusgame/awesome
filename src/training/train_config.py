@@ -41,9 +41,9 @@ EVAL_BATCH_SIZE = 16
 EVAL_TRAIN_SUBSAMPLE_FACTOR = 1
 
 # Train for `TRAIN_INC_STEPS` steps before evaluating the model.
-TRAIN_INC_STEPS = 1 * 1000 * 1000
+TRAIN_INC_STEPS = 1 * 1000 * 10
 # Train for `TRAIN_MAX_STEPS` steps max, then stop.
-TRAIN_MAX_STEPS = 1 * 1000 * 1000
+TRAIN_MAX_STEPS = 1 * 1000 * 10
 # Early stopping criterium, even if `TRAIN_MAX_STEPS` is not reached.
 STOP_AFTER_WORSE_EVALS_NUM = 5
 
@@ -58,7 +58,7 @@ DROPOUT_PROB = 0.5
 
 FIX_LEARNING_RATE = 0.001
 
-LOG_FREQ_STEP = 100
+LOG_FREQ_STEP = 1000
 
 # Select top `TOP_SEEDS_K` seeds and randomize
 TOP_SEEDS_K = 20

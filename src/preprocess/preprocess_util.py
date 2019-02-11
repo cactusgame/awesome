@@ -17,7 +17,7 @@ class PreprocessingFunction(object):
         """Preprocess raw input columns into transformed columns."""
         outputs = inputs.copy()
 
-        for key in number_keys:
+        for key in enabled_number_features:
             outputs[key] = tft.scale_to_z_score((outputs[key]))
 
         # for key in OPTIONAL_NUMERIC_FEATURE_KEYS:
@@ -30,7 +30,7 @@ class PreprocessingFunction(object):
         #     dense = tf.squeeze(dense, axis=1)
         #     outputs[key] = tft.scale_to_0_1(dense)
 
-        for key in vocabulary_keys:
+        for key in enabled_vocabulary_features:
             tft.vocabulary(inputs[key], vocab_filename=key)
 
         return outputs
