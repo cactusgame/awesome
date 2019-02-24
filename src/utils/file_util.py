@@ -29,9 +29,29 @@ class FileUtil():
             fh.writelines(lines)
 
     @staticmethod
-    def coscmd_upload(file_abs_path):
+    def upload_data(file_abs_path):
+        """
+        upload a file to `data` dir
+        :param file_abs_path:
+        :return:
+        """
         filename = (os.path.basename(file_abs_path))
-        # cmd = "coscmd -b heai-seed-rec-service-dev-1256590953 upload " + file_abs_path + " seedrec/" + filename
-        cmd = "cp awesome.db /tmp/featuredb"  # this will persist on Node disk
+        cmd = "coscmd -b heai-seed-rec-service-dev-1256590953 upload " + file_abs_path + " seedrec/test/data/" + filename
+        # cmd = "cp awesome.db /tmp/featuredb"  # this will persist on Node disk
         status, output = commands.getstatusoutput(cmd)
         print(str(status) + " " + str(output))
+
+
+    @staticmethod
+    def download_data(filepath_in_cos,local_file_name):
+        """
+        download a file from COS
+        :param filepath_in_cos:  /seedrec/test/data/awesome.db
+        :param local_file_name:  awesome.db
+        :return:
+        """
+        local_path = os.path.abspath(local_file_name)
+        cmd = "coscmd -b heai-seed-rec-service-dev-1256590953 download -f {} {}".format(filepath_in_cos,local_path)
+        status, output = commands.getstatusoutput(cmd)
+        print(str(status) + " " + str(output))
+

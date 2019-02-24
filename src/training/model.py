@@ -22,12 +22,14 @@ class SignatureKeys(object):
     OUTPUT = 'outputs'
     PREDICTIONS = 'predictions'
 
+
 class SignatureDefs(object):
     """ Enum for model signature defs """
 
     ANALYSIS_ROR_20 = 'analysis_ror_20'
     ANALYSIS_Q = 'analysis_q'
     DEFAULT = signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY
+
 
 class Model:
     class MetricKeys(object):
@@ -88,7 +90,7 @@ class Model:
 
         return input_fn
 
-    def make_analysis_input_fn(self,tf_transform_dir):
+    def make_analysis_input_fn(self, tf_transform_dir):
 
         data_formatter = DataFormatter()
 
@@ -139,7 +141,8 @@ class Model:
             base_features_columns.append(fc)
 
         # NUM_INT and NUM_FLOAT, already converted to numeric value by tft and scaled
-        base_features_columns += [tf.feature_column.numeric_column(key, default_value=0.) for key in enabled_number_features]
+        base_features_columns += [tf.feature_column.numeric_column(key, default_value=0.) for key in
+                                  enabled_number_features]
 
         self.logger.info('len of features_columns: {}'.format(len(base_features_columns)))
         return base_features_columns
@@ -202,17 +205,14 @@ class Model:
             )(h3_do0)
             softmax0 = tf.contrib.layers.softmax(logits0)
 
-            # Q-values: a combination of the `item_used` Q-value (`softmax0`) and
-            # the `play_again` Q-value (`softmax1`).
-            # We normalize and then add both Q-value functions together.
             q_values = tf.div(softmax0[:, 1] - tf.reduce_min(softmax0[:, 1]),
                               tf.reduce_max(softmax0[:, 1]) - tf.reduce_min(softmax0[:, 1]))
 
-
             if mode == tf.estimator.ModeKeys.TRAIN or mode == tf.estimator.ModeKeys.EVAL:
-                labels0 = labels # int64 Notice: use labels but not labels[0], because we only have 1 label now.
-                onehot_labels0 = tf.one_hot(labels0, depth=2) # shape(2,0) should [batch_size, num_classes]  , logit should [batch_size, num_classes]
-                                                            # logit(?,2)
+                labels0 = labels  # int64 Notice: use labels but not labels[0], because we only have 1 label now.
+                onehot_labels0 = tf.one_hot(labels0,
+                                            depth=2)  # shape(2,0) should [batch_size, num_classes]  , logit should [batch_size, num_classes]
+                # logit(?,2)
                 # `ror_20_days_bool` loss definition: weighting to correct for class imbalances.
                 unweighted_losses0 = tf.losses.softmax_cross_entropy(
                     onehot_labels=onehot_labels0, logits=logits0, reduction=Reduction.NONE)
@@ -272,10 +272,11 @@ class Model:
                     tf.summary.histogram('q0', softmax0[:, 0])
                     tf.summary.histogram('q1', softmax0[:, 1])
 
-                # Log a few predictions.
-                target_and_q0 = tf.stack([tf.cast(labels0, tf.float32), softmax0[:, 1]], axis=1)
+                # Log a few predictions.label0 : ror_xxx_days_bool
+                # to watch the labels and softmax in training
+                label_and_softmax0 = tf.stack([tf.cast(labels0, tf.float32), softmax0[:, 1]], axis=1)
                 logging_hook = tf.train.LoggingTensorHook({
-                    'target_and_q_ror_20': target_and_q0[0:10, :],
+                    'label_and_softmax0': label_and_softmax0[0:10, :],  # label_and_softmax0 size is batch size in train_config "TRAIN_BATCH_SIZE"
                 }, every_n_iter=LOG_FREQ_STEP)
 
                 return tf.estimator.EstimatorSpec(

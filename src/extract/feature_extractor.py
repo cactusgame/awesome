@@ -76,7 +76,7 @@ class FeatureExtractor:
 
             for index in range(len(close_list)):
                 if len(close_list[index:index + n]) == n:  # else: not enough (N) data, so drop it.
-                    values.append([date_list[index], share_id] + preprocessing.scale(close_list[index:index + n]).tolist() )
+                    values.append([ str(date_list[index]), str(share_id)] + preprocessing.scale(close_list[index:index + n]).tolist() )
             return pd.DataFrame(columns=keys, data=values)
         except Exception as e:
             context.logger.error("error" + str(e))
@@ -108,7 +108,7 @@ class FeatureExtractor:
                         ror40 = round((close_list[index + 40] / close_list[index]) - 1, 4)
                         ror60 = round((close_list[index + 60] / close_list[index]) - 1, 4)
 
-                        values.append([date_list[index], share_id, ror5, ror10, ror20, ror40, ror60])
+                        values.append([str(date_list[index]), str(share_id), ror5, ror10, ror20, ror40, ror60])
             except IndexError:
                 print("calculate ror maybe complete")
 
@@ -131,8 +131,8 @@ if __name__ == "__main__":
     # extractor.test_extract()
     # for test stage1, we should only extract recent 4000 days's data
     # extractor.extract_all(start_date='20050101', end_date='20181231')
-    extractor.extract_one_share(share_id='000001.SZ', start_date='20050101', end_date='20181231')
+    extractor.extract_one_share(share_id='000001.SZ', start_date='20180101', end_date='20181231')
 
     # upload the db after extract the features
-    FileUtil.coscmd_upload(os.path.abspath("awesome.db"))
+    FileUtil.upload_data(os.path.abspath("awesome.db"))
     context.logger.warn("extracting completed, use time {}s".format(str(time.time() - _start)))

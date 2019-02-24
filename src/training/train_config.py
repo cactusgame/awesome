@@ -41,9 +41,9 @@ EVAL_BATCH_SIZE = 16
 EVAL_TRAIN_SUBSAMPLE_FACTOR = 1
 
 # Train for `TRAIN_INC_STEPS` steps before evaluating the model.
-TRAIN_INC_STEPS = 1 * 1000 * 10
+TRAIN_INC_STEPS = 1 * 1000 * 2
 # Train for `TRAIN_MAX_STEPS` steps max, then stop.
-TRAIN_MAX_STEPS = 1 * 1000 * 10
+TRAIN_MAX_STEPS = 1 * 1000 * 2
 # Early stopping criterium, even if `TRAIN_MAX_STEPS` is not reached.
 STOP_AFTER_WORSE_EVALS_NUM = 5
 

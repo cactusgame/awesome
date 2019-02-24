@@ -6,6 +6,7 @@ import apache_beam as beam
 import tempfile
 import shutil
 import csv
+import sqlite3
 
 from tensorflow_transform.beam import impl as beam_impl
 from tensorflow_transform.beam.tft_beam_io import transform_fn_io
@@ -41,26 +42,45 @@ class Preprocessor:
     def process(self):
         self.reset_env()
 
-        self.add_target_keys()
+        self.download_features()
 
-        self.shuf()
-
-        self.divide_train_eval()
-
-        self.split_to_shards()
-
-        self.build_graph()
-
-        self.transform()
+        # self.add_target_keys()
+        #
+        # self.shuf()
+        #
+        # self.divide_train_eval()
+        #
+        # self.split_to_shards()
+        #
+        # self.build_graph()
+        #
+        # self.transform()
 
     def reset_env(self):
         if os.path.exists(TARGET_DIR):
             shutil.rmtree(TARGET_DIR)
         os.makedirs(TARGET_DIR)
 
+    def download_features(self):
+        """
+        1. donwload the awesome.db from COS
+        2. export to .csv
+        :return:
+        """
+        # FileUtil.download_data("/seedrec/test/data/awesome.db","awesome.db")
+
+        conn = sqlite3.connect('awesome.db')
+        cursor = conn.cursor()
+        cursor.execute("select * from FEATURE;")
+        # with open("out.csv", "w", newline='') as csv_file:  # Python 3 version
+        with open("data/features.csv", "wb") as csv_file:  # Python 2 version
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow([i[0] for i in cursor.description])  # write headers
+            csv_writer.writerows(cursor)
+
     def add_target_keys(self):
         """
-        add target keys for training
+        in order to generate the TARGET key in training. add target keys firstly
         :return:
         """
         # output

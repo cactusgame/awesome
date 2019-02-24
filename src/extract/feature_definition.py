@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 feature_definition_config = {}
-feature_definition_config["close_n_days_before"] = 3
+feature_definition_config["close_n_days_before"] = 21
 feature_definition_config["ror_n_days_after"] = 60
 
 # feature_extractor_definition is only used for feature extractor,
@@ -29,6 +29,25 @@ TYPE_TARGET = "target"
 feature_extractor_definition["close_b0"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
 feature_extractor_definition["close_b1"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
 feature_extractor_definition["close_b2"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b3"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b4"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b5"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b6"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b7"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b8"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b9"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b10"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b11"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b12"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b13"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b14"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b15"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b16"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b17"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b18"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b19"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+feature_extractor_definition["close_b20"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE, True)
+
 feature_extractor_definition["share_id"] = ("str", "REAL", "tf.FixedLenFeature", FORMAT_VOCABULARY, tf.string, TYPE_FEATURE, True)
 
 # RoR (rate of return)
