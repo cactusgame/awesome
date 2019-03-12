@@ -44,17 +44,17 @@ class Preprocessor:
 
         self.download_features()
 
-        # self.add_target_keys()
-        #
-        # self.shuf()
-        #
-        # self.divide_train_eval()
-        #
-        # self.split_to_shards()
-        #
-        # self.build_graph()
-        #
-        # self.transform()
+        self.add_target_keys()
+
+        self.shuf()
+
+        self.divide_train_eval()
+
+        self.split_to_shards()
+
+        self.build_graph()
+
+        self.transform()
 
     def reset_env(self):
         if os.path.exists(TARGET_DIR):
@@ -67,7 +67,7 @@ class Preprocessor:
         2. export to .csv
         :return:
         """
-        # FileUtil.download_data("/seedrec/test/data/awesome.db","awesome.db")
+        FileUtil.download_data("/dv/data/awesome.db", "awesome.db")
 
         conn = sqlite3.connect('awesome.db')
         cursor = conn.cursor()
@@ -98,7 +98,7 @@ class Preprocessor:
                 header = row
             else:
                 for feature_column_function in new_feature_column_functions:
-                    row.append(feature_column_function(header,row))
+                    row.append(feature_column_function(header, row))
             writer.writerow(row)
         inputfile.close()
         output.close()

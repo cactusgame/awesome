@@ -21,7 +21,9 @@ class FeatureExtractor:
     def extract_all(self, start_date, end_date):
         all_shares_df = context.tushare.stock_basic(exchange='', list_status='L',
                                                     fields='ts_code,name,area,industry,list_date')
-        all_shares = all_shares_df['ts_code']
+        all_shares = all_shares_df['ts_code'][all_shares_df['list_date'] < end_date]
+        # select part of all data for testing
+        all_shares = all_shares[:100]
         for index, share in all_shares.iteritems():
             self.extract_one_share(share, start_date, end_date)
             time.sleep(0.5)
@@ -110,13 +112,16 @@ class FeatureExtractor:
 
                         values.append([str(date_list[index]), str(share_id), ror5, ror10, ror20, ror40, ror60])
             except IndexError:
-                print("calculate ror maybe complete")
+                print("calculate ror maybe complet share_id = {}".format(share_id))
 
             return pd.DataFrame(columns=keys, data=values)
         except Exception as e:
             context.logger.error("error" + str(e))
 
     def __merge_data_to_commit(self, close_df, ror_df):
+        if close_df is None or ror_df is None:
+            return
+
         result_df = pd.merge(close_df, ror_df, on=["time", "share_id"])
         # print(result_df)
 
@@ -130,8 +135,8 @@ if __name__ == "__main__":
     extractor = FeatureExtractor()
     # extractor.test_extract()
     # for test stage1, we should only extract recent 4000 days's data
-    # extractor.extract_all(start_date='20050101', end_date='20181231')
-    extractor.extract_one_share(share_id='000001.SZ', start_date='20180101', end_date='20181231')
+    extractor.extract_all(start_date='20050101', end_date='20181231')
+    # extractor.extract_one_share(share_id='000411.SZ', start_date='20050101', end_date='20181231')
 
     # upload the db after extract the features
     FileUtil.upload_data(os.path.abspath("awesome.db"))

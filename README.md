@@ -43,7 +43,7 @@ docker push ccr.ccs.tencentyun.com/prometheus/extractor-test:latest
 #### Run Pod
 You have to push the docker image first, then create it in k8s.
 ```
-kubectl create -f kube/extractor-pod.yaml
+kubectl --context=training-stage create -f kube/extractor-pod.yaml
 ```
 
 #### extractor locally
@@ -51,7 +51,10 @@ kubectl create -f kube/extractor-pod.yaml
 docker run -it ccr.ccs.tencentyun.com/prometheus/extractor-test:latest bash
 ```
 
-#### Export FEATURES to CSV
+
+
+
+##### Export FEATURES to CSV
 enter into sqlite (in project `root` folder)
 ```
 sqlite3 awesome.db
