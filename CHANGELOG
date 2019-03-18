@@ -1,4 +1,6 @@
 project log:
+todo: features and target definiation in algorithm but not extractor
+
 2019-02-24
 - [feature-extractor] upload awesome.db to COS
 - [pre-process] download awesome.db from COS and export to feature.csv automatically

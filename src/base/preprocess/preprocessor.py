@@ -13,15 +13,14 @@ from tensorflow_transform.beam.tft_beam_io import transform_fn_io
 from tensorflow_transform import coders as tft_coders
 from apache_beam.io import textio
 from apache_beam.runners import DirectRunner
+
 from src.context import context
-from src.extract.feature_definition import new_feature_column_names
-from src.extract.feature_definition import new_feature_column_functions
-from src.utils.file_util import FileUtil
-from src.training.train_config import *
-from src.preprocess.preprocess_util import MapAndFilterErrors
-from src.preprocess.preprocess_util import PreprocessingFunction
-from src.preprocess.data_formatter import DataFormatter
 from src.config.app_config import app_config
+
+from src.utils.file_util import FileUtil
+from src.base.config import cfg
+from src.base.preprocess.preprocess_util import MapAndFilterErrors
+from src.base.preprocess.preprocess_util import PreprocessingFunction
 
 """
 to preprocess the experiment log
@@ -36,30 +35,29 @@ class Preprocessor:
         self.exp_log_data_file_shuf = None
         self.exp_log_data_file_without_header = None
         self.exp_log_header = None
-
         self.data_formatter = None
 
     def process(self):
         self.reset_env()
 
-        self.download_features()
+        # self.download_features()
 
-        self.add_target_keys()
-
-        self.shuf()
-
-        self.divide_train_eval()
-
-        self.split_to_shards()
-
-        self.build_graph()
-
-        self.transform()
+        # self.add_target_keys()
+        #
+        # self.shuf()
+        #
+        # self.divide_train_eval()
+        #
+        # self.split_to_shards()
+        #
+        # self.build_graph()
+        #
+        # self.transform()
 
     def reset_env(self):
-        if os.path.exists(TARGET_DIR):
-            shutil.rmtree(TARGET_DIR)
-        os.makedirs(TARGET_DIR)
+        if os.path.exists(cfg.TARGET_DIR):
+            shutil.rmtree(cfg.TARGET_DIR)
+        os.makedirs(cfg.TARGET_DIR)
 
     def download_features(self):
         """
@@ -72,11 +70,12 @@ class Preprocessor:
         conn = sqlite3.connect('awesome.db')
         cursor = conn.cursor()
         cursor.execute("select * from FEATURE;")
-        # with open("out.csv", "w", newline='') as csv_file:  # Python 3 version
-        with open("data/features.csv", "wb") as csv_file:  # Python 2 version
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow([i[0] for i in cursor.description])  # write headers
-            csv_writer.writerows(cursor)
+
+        csv_file = FileUtil.open_file("data/features_db.csv", "wb")
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow([i[0] for i in cursor.description])  # write headers
+        csv_writer.writerows(cursor)
+        csv_file.close()
 
     def add_target_keys(self):
         """
@@ -293,10 +292,3 @@ class Preprocessor:
         return train_tfrecord_fname_out, eval_tfrecord_fname_out
 
 
-if __name__ == "__main__":
-    _start = time.time()
-
-    preprocessor = Preprocessor()
-    preprocessor.process()
-
-    context.logger.info("[total] preprocess use time {:.2f}s".format(time.time() - _start))

@@ -78,6 +78,7 @@ class Model:
                 reader_num_threads=mp.cpu_count(),
                 parser_num_threads=mp.cpu_count(),
                 prefetch_buffer_size=1,
+                num_epochs=1,
                 shuffle_buffer_size=SHUFFLE_BUFFER_SIZE,
                 shuffle=True)
             # todo: to see the doc about dataset how to map the original data
@@ -120,6 +121,34 @@ class Model:
 
         return analysis_input_fn
 
+    def make_serving_input_fn(self, tf_transform_output):
+        """ Estimator input function generator for model serving.
+        :param tf_transform_output: tf.Transform graph output wrapper.
+        :return: Estimator input function for serving (prediction).
+        """
+
+        data_formatter = DataFormatter()
+
+        def serving_input_fn():
+            """
+            inputs : supported features
+            inputs_ext: all features
+            """
+            inputs, inputs_ext = {}, {}
+
+            # Used input features
+            for k in data_formatter.USED_FEATURES:
+                placeholder = tf.placeholder(
+                    shape=[None], dtype=data_formatter.get_tf_dtype(k))
+                inputs[key] = placeholder
+                inputs_ext[key] = placeholder
+
+            transformed_features = tf_transform_output.transform_raw_features(inputs)
+
+            return tf.estimator.export.ServingInputReceiver(transformed_features, inputs_ext)
+
+        return serving_input_fn
+
     def create_feature_columns(self, tf_transform_output):
         """
         Returns feature columns to be used by the model
@@ -145,6 +174,8 @@ class Model:
                                   enabled_number_features]
 
         self.logger.info('len of features_columns: {}'.format(len(base_features_columns)))
+        for fc in base_features_columns:
+            self.logger.info('feature column {}'.format(fc.name))
         return base_features_columns
 
     def make_model_fn(self, tf_transform_output):

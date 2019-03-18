@@ -4,6 +4,8 @@ from tensorflow_transform.tf_metadata import dataset_metadata
 from tensorflow_transform.tf_metadata import dataset_schema
 
 from src.extract.feature_definition import feature_column_definition
+from src.extract.feature_definition import TYPE_FEATURE
+from src.extract.feature_definition import TYPE_DICT
 from src.context import context
 
 
@@ -12,6 +14,8 @@ class DataFormatter:
         self.ordered_columns = []
 
         RAW_DATA_FEATURE_SPEC = dict()
+        # use all features in feature_column_defination
+        # in the future, will use only part of the defined features
         for key, value in feature_column_definition.iteritems():
             if value[6]:
                 if value[2] == "tf.FixedLenFeature":
@@ -21,6 +25,14 @@ class DataFormatter:
 
         self.RAW_DATA_METADATA = dataset_metadata.DatasetMetadata(
             dataset_schema.from_feature_spec(RAW_DATA_FEATURE_SPEC))
+
+        # feature name : feature type
+        self.USED_FEATURES = {}
+        for key, value in feature_column_definition.iteritems():
+            if value[5] == TYPE_FEATURE:
+                self.USED_FEATURES[key] = value[0]  # python type
+
+
 
     def init_columns(self, columns_str):
         """
@@ -36,3 +48,11 @@ class DataFormatter:
 
     def get_raw_data_metadata(self):
         return self.RAW_DATA_METADATA
+
+    def get_tf_dtype(self, feature_name):
+        """
+        according feature name, return TF dtype
+        :param feature_name:
+        :return:
+        """
+        return TYPE_DICT[self.USED_FEATURES[feature_name]]

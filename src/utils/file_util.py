@@ -55,3 +55,8 @@ class FileUtil():
         status, output = commands.getstatusoutput(cmd)
         print(str(status) + " " + str(output))
 
+    @staticmethod
+    def open_file(filename, access):
+        if not os.path.exists(os.path.dirname(filename)):
+            os.makedirs(os.path.dirname(filename))
+        return open(filename, access)

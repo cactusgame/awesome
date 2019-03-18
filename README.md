@@ -1,6 +1,8 @@
 # awesome
 
 ## Feature Extractor
+the extractor is only responsible for fetching data through internet.  
+If you want to use some of the features in your algorithm, you should implement a `Data Formatter` to define which features you will use.
 
 ### design
 - extraction for different features will use different tables. For example

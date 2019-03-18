@@ -23,7 +23,7 @@ class FeatureExtractor:
                                                     fields='ts_code,name,area,industry,list_date')
         all_shares = all_shares_df['ts_code'][all_shares_df['list_date'] < end_date]
         # select part of all data for testing
-        all_shares = all_shares[:100]
+        all_shares = all_shares[:2]
         for index, share in all_shares.iteritems():
             self.extract_one_share(share, start_date, end_date)
             time.sleep(0.5)
@@ -133,11 +133,10 @@ class FeatureExtractor:
 if __name__ == "__main__":
     _start = time.time()
     extractor = FeatureExtractor()
-    # extractor.test_extract()
     # for test stage1, we should only extract recent 4000 days's data
     extractor.extract_all(start_date='20050101', end_date='20181231')
     # extractor.extract_one_share(share_id='000411.SZ', start_date='20050101', end_date='20181231')
 
     # upload the db after extract the features
-    FileUtil.upload_data(os.path.abspath("awesome.db"))
+    # FileUtil.upload_data(os.path.abspath("awesome.db"))
     context.logger.warn("extracting completed, use time {}s".format(str(time.time() - _start)))
