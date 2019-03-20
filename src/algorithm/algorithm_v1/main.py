@@ -1,4 +1,5 @@
 import time
+import os
 
 from src.base.config import cfg
 from src.utils.logger import log
@@ -11,7 +12,8 @@ def main():
 
     cfg.load(Config())
 
-    cfg.cls_data_formatter = 'src/algorithm/algorithm_v1/data_formatter.py'
+    cfg.cls_data_formatter = os.path.normpath(os.path.join(os.path.dirname(__file__), 'data_formatter.py'))
+    cfg.cls_coder = os.path.normpath(os.path.join(os.path.dirname(__file__), 'coder.py'))
 
     preprocessor = Preprocessor()
     preprocessor.process()

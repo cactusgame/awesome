@@ -1,5 +1,7 @@
 project log:
 todo: features and target definiation in algorithm but not extractor
+2019-03-20
+- refactor: extractor is only responsible for extracting every kind of features as a data service. In every different algorithm, I use `DataFormatter` to present the schema.
 
 2019-02-24
 - [feature-extractor] upload awesome.db to COS

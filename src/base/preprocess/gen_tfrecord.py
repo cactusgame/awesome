@@ -13,8 +13,8 @@ from tensorflow_transform import coders as tft_coders
 from apache_beam.io import textio
 from apache_beam.io import tfrecordio
 
-from src.preprocess.preprocess_util import MapAndFilterErrors
-from src.preprocess.data_formatter import DataFormatter
+from src.base.preprocess.preprocess_util import MapAndFilterErrors
+from src.utils.utils import import_from_uri
 
 log = logging.getLogger('tensorflow')
 
@@ -24,8 +24,8 @@ def write_to_tfrecord(args):
     This function is supposed to be called as a script.
     """
     # Decode arguments
-    csv_file_header, current_index, num_shards, train_split_fname_out, eval_split_fname_out, \
-    train_tfrecord_fname_out, eval_tfrecord_fname_out, working_dir = args
+    current_index, num_shards, train_split_fname_out, eval_split_fname_out, \
+    train_tfrecord_fname_out, eval_tfrecord_fname_out, working_dir, data_formatter_module_path = args
 
     # num_shards = "32"
     current_index, num_shards = int(current_index), int(num_shards)
@@ -38,8 +38,8 @@ def write_to_tfrecord(args):
     log.info('split_train_file_pattern {}'.format(split_train_file_pattern))
     log.info('split_eval_file_pattern {}'.format(split_eval_file_pattern))
 
-    data_formatter = DataFormatter()
-    data_formatter.init_columns(csv_file_header)
+
+    data_formatter = import_from_uri(data_formatter_module_path).DataFormatter()
 
     # Set up the preprocessing pipeline.
     pipeline = beam.Pipeline(runner=DirectRunner())
@@ -53,8 +53,8 @@ def write_to_tfrecord(args):
             split_train_file_pattern,
             skip_header_lines=0)
                 | 'DecodeTrainDataCSV' >> MapAndFilterErrors(
-            tft_coders.CsvCoder(data_formatter.get_ordered_columns(),
-                                data_formatter.get_raw_data_metadata().schema).decode)
+            tft_coders.CsvCoder(data_formatter.get_features_and_targets(),
+                                data_formatter.get_features_metadata().schema).decode)
         )
 
         raw_eval_data = (
@@ -63,8 +63,8 @@ def write_to_tfrecord(args):
             split_eval_file_pattern,
             skip_header_lines=0)
                 | 'DecodeEvalDataCSV' >> MapAndFilterErrors(
-            tft_coders.CsvCoder(data_formatter.get_ordered_columns(),
-                                data_formatter.get_raw_data_metadata().schema).decode)
+            tft_coders.CsvCoder(data_formatter.get_features_and_targets(),
+                                data_formatter.get_features_metadata().schema).decode)
         )
 
         # Examples in tf-example format (for model analysis purposes).
@@ -89,13 +89,13 @@ def write_to_tfrecord(args):
 
         # Applies the transformation `transform_fn` to the raw eval dataset
         (transformed_train_data, transformed_metadata) = (
-                ((raw_train_data, data_formatter.RAW_DATA_METADATA), transform_fn)
+                ((raw_train_data, data_formatter.get_features_metadata()), transform_fn)
                 | 'TransformTrainData' >> beam_impl.TransformDataset()
         )
 
         # Applies the transformation `transform_fn` to the raw eval dataset
         (transformed_eval_data, transformed_metadata) = (
-                ((raw_eval_data, data_formatter.RAW_DATA_METADATA), transform_fn)
+                ((raw_eval_data, data_formatter.get_features_metadata()), transform_fn)
                 | 'TransformEvalData' >> beam_impl.TransformDataset()
         )
 
@@ -125,10 +125,6 @@ def write_to_tfrecord(args):
 
     # After transforming, remove original files.
     # for fl in glob.glob(split_train_file_pattern):
-    #     log.info('Removing {}'.format(fl))
-    #     os.remove(fl)
-    #
-    # for fl in glob.glob(split_eval_file_pattern):
     #     log.info('Removing {}'.format(fl))
     #     os.remove(fl)
 

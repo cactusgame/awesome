@@ -5,9 +5,8 @@ import commands
 class Config:
     # Some file names
     # name of the file which stores all experience
+    feature_db_path = "data/features_db.csv"
     exp_file_path = "data/features.csv"
-    exp_target_file_path = "data/features_all.csv"
-    exp_log_data_file = os.path.abspath(exp_target_file_path)
     exp_log_data_file_without_header = '{}.withoutheader'.format(exp_file_path)
     exp_log_data_file_shuf = '{}.shuf'.format(exp_file_path)
     exp_log_data_file_train = '{}.train'.format(exp_file_path)
@@ -73,6 +72,7 @@ class Config:
 
     # params dynamically passed in
     cls_data_formatter = ''
+    cls_coder = ''
 
     def __init__(self):
         pass
