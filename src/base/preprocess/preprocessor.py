@@ -249,7 +249,7 @@ class Preprocessor:
             python_command = app_config.SUBPROCESS_PYTHON  # Notice: the python must the same python as the master process
             call = [python_command, _exec_path, str(i), str(cfg.DATASET_NUM_SHARDS),
                     cfg.exp_log_data_file_train_shard, cfg.exp_log_data_file_eval_shard,
-                    cfg.train_tfrecord_fname_out, cfg.eval_tfrecord_fname_out, cfg.TARGET_DIR,data_formatter_module_path]
+                    cfg.exp_log_data_file_train_tfrecord, cfg.exp_log_data_file_eval_tfrecord, cfg.TARGET_DIR,data_formatter_module_path]
             log.info("Sub process command to transform: {}".format(call))
 
             results.append(subprocess.Popen(call))

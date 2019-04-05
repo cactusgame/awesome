@@ -5,7 +5,7 @@ from src.base.config import cfg
 from src.utils.logger import log
 from src.base.preprocess.preprocessor import Preprocessor
 from src.algorithm.algorithm_v1.config import Config
-
+from src.algorithm.algorithm_v1.trainer import Trainer
 
 def main():
     _start = time.time()
@@ -17,6 +17,9 @@ def main():
 
     preprocessor = Preprocessor()
     preprocessor.process()
+
+    trainer = Trainer()
+    trainer.train()
 
     log.info("[total] use {}s to preprocess".format(time.time() - _start))
 

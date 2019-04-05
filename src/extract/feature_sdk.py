@@ -1,8 +1,8 @@
 import json
 import sys
 import sqlite3 as lite
-from pprint import pprint
 from src.extract.feature_definition import feature_extractor_definition
+from src.extract.feature_definition import TYPE_INFER
 
 
 class FeatureSDK():
@@ -71,7 +71,9 @@ class FeatureSDK():
         """
         self.__init_table()
 
-        feature_dict_sorted_keys = feature_extractor_definition.keys()
+        # filter out field need to store into db
+        feature_dict_sorted_keys = [key for key in feature_extractor_definition.keys() if
+                                    feature_extractor_definition[key][5] != TYPE_INFER]
         feature_dict_sorted_keys.sort()
         for key in feature_dict_sorted_keys:
             if not self.__has_feature_column(key):

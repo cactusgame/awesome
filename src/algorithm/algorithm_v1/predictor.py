@@ -19,7 +19,7 @@ class Predictor:
 
         eval_sample_input_fn = self.model.make_training_input_fn(
             tf_transform_output,
-            train_tfrecord_fname_out + '*',
+            exp_log_data_file_train_tfrecord + '*',
             1)
 
         predict_fn = predictor.from_saved_model(TARGET_DIR)

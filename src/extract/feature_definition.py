@@ -15,7 +15,7 @@ feature_extractor_definition = {}
 # [2] feature def in TFT
 # [3] feature preprocessing type in TFT (like Number, Vocabulary...)
 # [4] feature type in TF
-# [5] whether it is a Feature or Target
+# [5] whether it is a Feature, Target or Infer
 
 # close price before N days
 FORMAT_NUMBER = "Number"
@@ -23,6 +23,7 @@ FORMAT_VOCABULARY = "Vocabulary"
 
 TYPE_FEATURE = "feature"
 TYPE_TARGET = "target"
+TYPE_INFER = "infer"
 
 ### Features
 feature_extractor_definition["close_b0"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE)
@@ -49,54 +50,14 @@ feature_extractor_definition["close_b20"] = ("float", "REAL", "tf.FixedLenFeatur
 feature_extractor_definition["share_id"] = ("str", "REAL", "tf.FixedLenFeature", FORMAT_VOCABULARY, tf.string, TYPE_FEATURE)
 
 ### Targets
-## only trading day, exclude holidays
+# only trading day, exclude holidays
 feature_extractor_definition["ror_05_days"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_TARGET)
 feature_extractor_definition["ror_10_days"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_TARGET)
 feature_extractor_definition["ror_20_days"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_TARGET)
 feature_extractor_definition["ror_40_days"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_TARGET)
 feature_extractor_definition["ror_60_days"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_TARGET)
 
-# feature_column_definition is used for preprocessing and training, it is include the feature added dynamically
-# all items in `feature_column_definition` are not stored in database
-# TARGET_KEY_ROR_20_DATS_BOOL = 'ror_20_days_bool'
-#
-# feature_column_definition = {}
-# for key, value in feature_extractor_definition.iteritems():
-#     if value[6]:
-#         feature_column_definition[key] = value
-# feature_column_definition[TARGET_KEY_ROR_20_DATS_BOOL] = ("bool", "None", "tf.FixedLenFeature", FORMAT_NUMBER, tf.int64, TYPE_TARGET)
+### Infer
+# This type if infered from coder which is only exist in features or targets, we don't need to store it in db.
+feature_extractor_definition["ror_20_days_bool"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_INFER)
 
-
-# def ror_20_days_bool_function(header, row):
-#     index = header.index('ror_20_days')
-#     return 1 if float(row[index]) > 0 else 0
-
-
-# # feature columns added dynamically
-# new_feature_column_names = [TARGET_KEY_ROR_20_DATS_BOOL]
-# # feature columns decider
-# new_feature_column_functions = [ror_20_days_bool_function]
-#
-
-#
-#
-# # todo: what about `time`?
-# # todo: move to DataFormatter for the specific algorithm
-# enabled_feature_keys = []
-# enabled_target_keys = []
-#
-# for key,value in feature_column_definition.iteritems():
-#     if value[6]:
-#         if value[5] == TYPE_TARGET:
-#             enabled_target_keys.append(key)
-#         elif value[5] == TYPE_FEATURE:
-#             enabled_feature_keys.append(key)
-#         else:
-#             raise Exception("Unsupported feature type:" + str(value[5]))
-
-# python type to tf type dict
-TYPE_DICT = {
-    'str': tf.string,  # String and bool features
-    'int': tf.int64,  # Int features that represent numeric values
-    'float': tf.float32,  # Floats
-}

@@ -14,8 +14,8 @@ class Config:
     exp_log_data_file_train_shard = '{}.shard'.format(exp_log_data_file_train)
     exp_log_data_file_eval_shard = '{}.shard'.format(exp_log_data_file_eval)
     # shards and tfrecords
-    train_tfrecord_fname_out = '{}.train.tfrecord'.format(exp_file_path)
-    eval_tfrecord_fname_out = '{}.eval.tfrecord'.format(exp_file_path)
+    exp_log_data_file_train_tfrecord = '{}.train.tfrecord'.format(exp_file_path)
+    exp_log_data_file_eval_tfrecord = '{}.eval.tfrecord'.format(exp_file_path)
 
     # Config for preprocessing
     SHUF_MEM = 1  # the shuf command memory usage Gi

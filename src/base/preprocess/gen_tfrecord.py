@@ -25,7 +25,7 @@ def write_to_tfrecord(args):
     """
     # Decode arguments
     current_index, num_shards, train_split_fname_out, eval_split_fname_out, \
-    train_tfrecord_fname_out, eval_tfrecord_fname_out, working_dir, data_formatter_module_path = args
+    exp_log_data_file_train_tfrecord, exp_log_data_file_eval_tfrecord, working_dir, data_formatter_module_path = args
 
     # num_shards = "32"
     current_index, num_shards = int(current_index), int(num_shards)
@@ -33,8 +33,8 @@ def write_to_tfrecord(args):
     split_train_file_pattern = '{}-{:05}-of-{:05}'.format(train_split_fname_out, current_index, num_shards) + '*'
     split_eval_file_pattern = '{}-{:05}-of-{:05}'.format(eval_split_fname_out, current_index, num_shards)
 
-    log.info('train_tfrecord_fname_out {}'.format(train_tfrecord_fname_out))
-    log.info('eval_tfrecord_fname_out {}'.format(eval_tfrecord_fname_out))
+    log.info('exp_log_data_file_train_tfrecord {}'.format(exp_log_data_file_train_tfrecord))
+    log.info('exp_log_data_file_eval_tfrecord {}'.format(exp_log_data_file_eval_tfrecord))
     log.info('split_train_file_pattern {}'.format(split_train_file_pattern))
     log.info('split_eval_file_pattern {}'.format(split_eval_file_pattern))
 
@@ -108,7 +108,7 @@ def write_to_tfrecord(args):
                 transformed_train_data
                 | 'EncodeTrainDataTransform' >> MapAndFilterErrors(transformed_data_coder.encode)
                 | 'WriteTrainDataTFRecord' >> tfrecordio.WriteToTFRecord(
-            '{}-{:05}-of-{:05}'.format(train_tfrecord_fname_out, current_index, num_shards),
+            '{}-{:05}-of-{:05}'.format(exp_log_data_file_train_tfrecord, current_index, num_shards),
             shard_name_template='', num_shards=1)
         )
 
@@ -116,7 +116,7 @@ def write_to_tfrecord(args):
                 transformed_eval_data
                 | 'EncodeEvalDataTransform' >> MapAndFilterErrors(transformed_data_coder.encode)
                 | 'WriteEvalDataTFRecord' >> tfrecordio.WriteToTFRecord(
-            '{}-{:05}-of-{:05}'.format(eval_tfrecord_fname_out, current_index, num_shards),
+            '{}-{:05}-of-{:05}'.format(exp_log_data_file_eval_tfrecord, current_index, num_shards),
             shard_name_template='', num_shards=1)
         )
 

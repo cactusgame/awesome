@@ -9,10 +9,11 @@ from tensorflow.python.saved_model import signature_constants
 from tensorflow_transform.saved import saved_transform_io
 from tensorflow_transform.beam.tft_beam_io import transform_fn_io
 
+from src.utils.logger import log
 from src.context import context
-from src.extract.feature_definition import *
-from src.training.train_config import *
-from src.preprocess.data_formatter import DataFormatter
+from src.algorithm.algorithm_v1.config import cfg
+from src.algorithm.algorithm_v1.data_formatter import DataFormatter
+from src.algorithm.algorithm_v1.data_formatter import Target
 
 
 class SignatureKeys(object):
@@ -31,26 +32,22 @@ class SignatureDefs(object):
     DEFAULT = signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY
 
 
+class MetricKeys(object):
+    Q_AUROC = 'metrics_{}/AUC_ROC'  # for example: metrics_ror_20_days_bool/Q_AUC_ROC, metrics_ror_20_days_bool/Q_AUC_PR
+    Q_PRAUC = 'metrics_{}/AUC_PR'
+    Q_RMSE = 'metrics_{}/RMSE'
+
+
 class Model:
-    class MetricKeys(object):
-        Q_AUROC = 'metrics_{}/AUC_ROC'  # for example: metrics_ror_20_days_bool/Q_AUC_ROC, metrics_ror_20_days_bool/Q_AUC_PR
-        Q_PRAUC = 'metrics_{}/AUC_PR'
-        Q_RMSE = 'metrics_{}/RMSE'
-
-    # Classification and regresion target definition
-    CLASSIF_TARGETS = [TARGET_KEY_ROR_20_DATS_BOOL]
-
-    # ================================================
-
     def __init__(self):
-        self.logger = context.tflogger
+        self.data_formatter = DataFormatter()
+        # Classification and regresion target definition
+        self.CLASSIF_TARGETS = self.data_formatter.TARGETS
 
     def __make_target(self, transformed_features):
         """ Target/reward definition """
 
-        # transformed_target0 = tf.cast(tf.rint(transformed_features[TARGET_KEY_ROR_20_DATS_BOOL]), tf.int64)
-        transformed_target0 = transformed_features[TARGET_KEY_ROR_20_DATS_BOOL]
-
+        transformed_target0 = transformed_features[Target.ROR_20_DAYS_BOOL]
         return transformed_target0
 
     def make_training_input_fn(self, tf_transform_output, transformed_examples, batch_size):
@@ -64,7 +61,7 @@ class Model:
         def parse_function(transformed_features):
             transformed_target = self.__make_target(transformed_features)
             stripped_transformed_features = {k: transformed_features[k] for k in transformed_features if
-                                             (k in enabled_feature_keys)}
+                                             (k in self.data_formatter.FEATURES)}
             return stripped_transformed_features, transformed_target
 
         def input_fn():
@@ -79,7 +76,7 @@ class Model:
                 parser_num_threads=mp.cpu_count(),
                 prefetch_buffer_size=1,
                 num_epochs=1,
-                shuffle_buffer_size=SHUFFLE_BUFFER_SIZE,
+                shuffle_buffer_size=cfg.SHUFFLE_BUFFER_SIZE,
                 shuffle=True)
             # todo: to see the doc about dataset how to map the original data
             dataset = dataset.map(parse_function, num_parallel_calls=mp.cpu_count())
@@ -92,12 +89,9 @@ class Model:
         return input_fn
 
     def make_analysis_input_fn(self, tf_transform_dir):
-
-        data_formatter = DataFormatter()
-
         def analysis_input_fn():
             # Get the raw feature spec for analysis
-            raw_feature_spec = data_formatter.RAW_DATA_METADATA.schema.as_feature_spec()
+            raw_feature_spec = self.data_formatter.get_features_spec()
 
             serialized_tf_example = tf.placeholder(dtype=tf.string, shape=[None])
 
@@ -137,9 +131,9 @@ class Model:
             inputs, inputs_ext = {}, {}
 
             # Used input features
-            for k in data_formatter.USED_FEATURES:
+            for key in data_formatter.FEATURES:
                 placeholder = tf.placeholder(
-                    shape=[None], dtype=data_formatter.get_tf_dtype(k))
+                    shape=[None], dtype=data_formatter.get_tf_dtype(key))
                 inputs[key] = placeholder
                 inputs_ext[key] = placeholder
 
@@ -161,7 +155,7 @@ class Model:
         # CATEGORY columns: tft already built vocabs
         # We define 1 additional bucket for out-of-vocab (OOV) values. This
         # way, we are able to cope with OOV-values at serving time.
-        for key in enabled_vocabulary_features:
+        for key in self.data_formatter.VOCABULARY_FEATURES:
             fc = tf.feature_column.indicator_column(
                 tf.feature_column.categorical_column_with_vocabulary_file(
                     key=key,
@@ -171,11 +165,11 @@ class Model:
 
         # NUM_INT and NUM_FLOAT, already converted to numeric value by tft and scaled
         base_features_columns += [tf.feature_column.numeric_column(key, default_value=0.) for key in
-                                  enabled_number_features]
+                                  self.data_formatter.FEATURES]
 
-        self.logger.info('len of features_columns: {}'.format(len(base_features_columns)))
+        log.info('len of features_columns: {}'.format(len(base_features_columns)))
         for fc in base_features_columns:
-            self.logger.info('feature column {}'.format(fc.name))
+            log.info('feature column {}'.format(fc.name))
         return base_features_columns
 
     def make_model_fn(self, tf_transform_output):
@@ -190,7 +184,7 @@ class Model:
             # Network structure
             # Batch norm after linear combination and before activation. Dropout after activation.
             h1 = tf.layers.Dense(
-                units=MODEL_NUM_UNIT_SCALE * 4,
+                units=cfg.MODEL_NUM_UNIT_SCALE * 4,
                 activation=None,
                 kernel_initializer=tf.glorot_normal_initializer(),
                 bias_initializer=tf.zeros_initializer()
@@ -199,11 +193,11 @@ class Model:
             h1_act = tf.nn.relu(h1_bn)
             h1_do = tf.layers.dropout(
                 inputs=h1_act,
-                rate=DROPOUT_PROB,
+                rate=cfg.DROPOUT_PROB,
                 training=(mode == tf.estimator.ModeKeys.TRAIN))
 
             h2 = tf.layers.Dense(
-                units=MODEL_NUM_UNIT_SCALE * 2,
+                units=cfg.MODEL_NUM_UNIT_SCALE * 2,
                 activation=None,
                 kernel_initializer=tf.glorot_normal_initializer(),
                 bias_initializer=tf.zeros_initializer()
@@ -212,12 +206,12 @@ class Model:
             h2_act = tf.nn.relu(h2_bn)
             h2_do = tf.layers.dropout(
                 inputs=h2_act,
-                rate=DROPOUT_PROB,
+                rate=cfg.DROPOUT_PROB,
                 training=(mode == tf.estimator.ModeKeys.TRAIN))
 
             # Head for label1
             h30 = tf.layers.Dense(
-                units=MODEL_NUM_UNIT_SCALE,
+                units=cfg.MODEL_NUM_UNIT_SCALE,
                 activation=None,
                 kernel_initializer=tf.glorot_normal_initializer(),
                 bias_initializer=tf.zeros_initializer()
@@ -226,7 +220,7 @@ class Model:
             h3_act0 = tf.nn.relu(h3_bn0)
             h3_do0 = tf.layers.dropout(
                 inputs=h3_act0,
-                rate=DROPOUT_PROB,
+                rate=cfg.DROPOUT_PROB,
                 training=(mode == tf.estimator.ModeKeys.TRAIN))
             logits0 = tf.layers.Dense(
                 units=2,
@@ -261,7 +255,7 @@ class Model:
             if mode == tf.estimator.ModeKeys.TRAIN:
 
                 # MSE loss, optimized with Adam
-                optimizer = tf.train.AdamOptimizer(FIX_LEARNING_RATE)
+                optimizer = tf.train.AdamOptimizer(cfg.FIX_LEARNING_RATE)
 
                 # This is to make sure we also update the rolling mean/var for `tf.layers.batch_normalization`
                 # (which is stored outside of the Estimator scope).
@@ -307,8 +301,9 @@ class Model:
                 # to watch the labels and softmax in training
                 label_and_softmax0 = tf.stack([tf.cast(labels0, tf.float32), softmax0[:, 1]], axis=1)
                 logging_hook = tf.train.LoggingTensorHook({
-                    'label_and_softmax0': label_and_softmax0[0:10, :],  # label_and_softmax0 size is batch size in train_config "TRAIN_BATCH_SIZE"
-                }, every_n_iter=LOG_FREQ_STEP)
+                    'label_and_softmax0': label_and_softmax0[0:10, :],
+                # label_and_softmax0 size is batch size in train_config "TRAIN_BATCH_SIZE"
+                }, every_n_iter=cfg.LOG_FREQ_STEP)
 
                 return tf.estimator.EstimatorSpec(
                     mode=mode,
@@ -334,8 +329,8 @@ class Model:
                 """
 
                 # Indices of top `p.TOP_SEEDS_K` Q-values.
-                top_q_idx = tf.nn.top_k(q_values, k=TOP_SEEDS_K)[1]
-                sel_q_idx = tf.random_shuffle(top_q_idx)[0:SEEDS_K_FINAL]
+                top_q_idx = tf.nn.top_k(q_values, k=cfg.TOP_SEEDS_K)[1]
+                sel_q_idx = tf.random_shuffle(top_q_idx)[0:cfg.SEEDS_K_FINAL]
                 # Since seeds are in [1, `p.SEEDS_K_FINAL`], we have to add 1 to the index.
                 predictions = sel_q_idx + 1
 
@@ -382,6 +377,6 @@ class Model:
                 variable_parameters = 1
                 for dim in shape:
                     variable_parameters *= dim.value
-                self.logger.info('var={}: shape={} num_params={}'.format(variable.name, shape, variable_parameters))
+                log.info('var={}: shape={} num_params={}'.format(variable.name, shape, variable_parameters))
                 total_parameters += variable_parameters
-            self.logger.info('total_params={}'.format(total_parameters))
+            log.info('total_params={}'.format(total_parameters))
