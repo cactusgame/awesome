@@ -10,9 +10,7 @@ If you want to use some of the features in your algorithm, you should implement 
   - table `feature2` has 3 columns. high_price, close_price and open_price.
   
 ### Feature SDK API
-save all features in sqlite.    
-`target` is also a `feature`
-
+(WIP) I haven't implemented all the method in the list
 - save(date,share_id,feature_name,value) : value support String and float.
 - update(date,share_id,feature_name,value)
 - delete_row(date,share_id)

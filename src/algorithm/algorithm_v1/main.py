@@ -21,7 +21,7 @@ def main():
     trainer = Trainer()
     trainer.train()
 
-    log.info("[total] use {}s to preprocess".format(time.time() - _start))
+    log.info("[total] use {} seconds totally".format(time.time() - _start))
 
 
 if __name__ == "__main__":

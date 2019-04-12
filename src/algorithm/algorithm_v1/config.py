@@ -8,6 +8,7 @@ class Config:
     feature_db_path = "data/features_db.csv"
     exp_file_path = "data/features.csv"
     exp_log_data_file_without_header = '{}.withoutheader'.format(exp_file_path)
+    exp_log_data_file_shuf_tmp = '{}.shuf.tmp'.format(exp_file_path)
     exp_log_data_file_shuf = '{}.shuf'.format(exp_file_path)
     exp_log_data_file_train = '{}.train'.format(exp_file_path)
     exp_log_data_file_eval = '{}.eval'.format(exp_file_path)

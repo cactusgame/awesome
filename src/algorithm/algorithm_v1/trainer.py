@@ -42,47 +42,11 @@ class Trainer:
 
         estimator = tf.estimator.LinearClassifier(
             feature_columns=self.model.create_feature_columns(tf_transform_output))
-        estimator.train(train_input_fn, steps=100)
-        eval_evalset_result = estimator.evaluate(eval_input_fn, steps=100, name='eval')
+        estimator.train(train_input_fn, steps=2000)
+        eval_evalset_result = estimator.evaluate(eval_input_fn, steps=1000, name='eval')
         print eval_evalset_result
 
         estimator.export_savedmodel(cfg.TARGET_DIR, make_serving_input_fn, strip_default_attrs=True)
-
-    # # todo
-    # def _parse_line(self, line):
-    #     CSV_TYPES = [[''], [''], [''], [''], [''], [0.0], [0.0], [0.0], [0.0], [0.0]]
-    #     CSV_COLUMN_NAMES = ['time', 'share_id',
-    #                         'close_b0', 'close_b1', 'close_b2', 'ror_05_days', 'ror_10_days', 'ror_20_days',
-    #                         'ror_40_days', 'ror_60_days']
-    #
-    #     # Decode the line into its fields
-    #     fields = tf.decode_csv(line, record_defaults=CSV_TYPES)
-    #
-    #     # Pack the result into a dictionary
-    #     features = dict(zip(CSV_COLUMN_NAMES, fields))
-    #
-    #     # Separate the label from the features
-    #     features.pop('time')
-    #     features.pop('ror_05_days')
-    #     features.pop('ror_10_days')
-    #     label = features.pop('ror_20_days')
-    #     features.pop('ror_40_days')
-    #     features.pop('ror_60_days')
-    #
-    #     return features, label
-    #
-    # def csv_input_fn(self, csv_path, batch_size):
-    #     # Create a dataset containing the text lines.
-    #     dataset = tf.data.TextLineDataset(csv_path).skip(1)
-    #
-    #     # Parse each line.
-    #     dataset = dataset.map(self._parse_line)
-    #
-    #     # Shuffle, repeat, and batch the examples.
-    #     dataset = dataset.shuffle(1000).repeat().batch(batch_size)
-    #
-    #     # Return the dataset.
-    #     return dataset
 
 
 if __name__ == "__main__":

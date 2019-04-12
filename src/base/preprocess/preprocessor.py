@@ -35,7 +35,6 @@ class Preprocessor:
     def __init__(self):
         log = context.logger
         self.exp_log_data_file_shuf = None
-        self.exp_log_data_file_without_header = None
         self.exp_log_header = None
         self.data_formatter = import_from_uri(cfg.cls_data_formatter).DataFormatter()
 
@@ -105,7 +104,9 @@ class Preprocessor:
         log.info('shuff start')
 
         # Use terashuf quasi-shuffle
-        shuf_cmd = 'MEMORY={:.1f} terashuf < {} > {}'.format(cfg.SHUF_MEM, cfg.exp_file_path,
+        FileUtil.save_remove_first_line(cfg.exp_file_path,cfg.exp_log_data_file_shuf_tmp)
+
+        shuf_cmd = 'MEMORY={:.1f} terashuf < {} > {}'.format(cfg.SHUF_MEM, cfg.exp_log_data_file_shuf_tmp,
                                                              cfg.exp_log_data_file_shuf)
         log.info('Executing shuf call: \"{}\"'.format(shuf_cmd))
 
@@ -115,7 +116,6 @@ class Preprocessor:
             shuf_cmd = 'sort -R {} -o {}'.format(cfg.exp_file_path, cfg.exp_log_data_file_shuf)
             ret_stat = os.system(shuf_cmd)
 
-        # os.remove(exp_log_data_file_without_header)
         log.info('Executing shuf call: \"{}\"'.format(shuf_cmd))
         log.info("complete shuff. use time {:.2f}s".format(time.time() - st))
 

@@ -25,26 +25,37 @@ import csv
 # f.close()
 # output.close()
 
-target_key = 'ror_20_days'
-new_target_key = 'ror_20_days_bool'
+# target_key = 'ror_20_days'
+# new_target_key = 'ror_20_days_bool'
+#
+# # output
+# output = open('data/test.csv', 'w')
+# writer = csv.writer(output, delimiter=',')
+#
+# f = open('data/features.csv', 'rb')
+# reader = csv.reader(f, delimiter=',')
+#
+# header = None
+# target_index = -1
+# for row in reader:
+#     if header is None:
+#         header = row
+#         target_index = header.index(target_key)
+#         row.append(new_target_key)
+#     else:
+#         r = 1 if float(row[target_index]) > 0 else 0
+#         row.append(r)
+#     writer.writerow(row)
+# f.close()
+# output.close()
 
-# output
-output = open('data/test.csv', 'w')
-writer = csv.writer(output, delimiter=',')
+with open('/Users/happyelements/Documents/peng/awesome/data/features.csv.eval','r') as f:
+    sum = 0
+    i = 0
+    for line in f:
+        print line[-3:-2]
+        sum = sum + int(line[-3:-2])
+        i = i + 1
 
-f = open('data/features.csv', 'rb')
-reader = csv.reader(f, delimiter=',')
-
-header = None
-target_index = -1
-for row in reader:
-    if header is None:
-        header = row
-        target_index = header.index(target_key)
-        row.append(new_target_key)
-    else:
-        r = 1 if float(row[target_index]) > 0 else 0
-        row.append(r)
-    writer.writerow(row)
-f.close()
-output.close()
+    print "mean = {}".format( sum/(i*1.0))
+    print "len = {}".format(i)
