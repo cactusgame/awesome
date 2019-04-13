@@ -9,7 +9,7 @@ from tensorflow.python.saved_model import signature_constants
 from tensorflow_transform.saved import saved_transform_io
 from tensorflow_transform.beam.tft_beam_io import transform_fn_io
 
-from src.utils.logger import log
+from src.context import log
 from src.context import context
 from src.algorithm.algorithm_v1.config import cfg
 from src.algorithm.algorithm_v1.data_formatter import DataFormatter

@@ -1,4 +1,9 @@
 project log:
+- todo: add `share_id`, `time` in features
+
+2019-04-12
+- add `tool` folder for deploy
+
 2019-04-05
 - use `LinearClassifier` to train successfully
 
@@ -8,9 +13,6 @@ project log:
 2019-02-24
 - [feature-extractor] upload awesome.db to COS
 - [pre-process] download awesome.db from COS and export to feature.csv automatically
-
-2019-02-09
-- todo: `time` in feature_column, remove other useless column
 
 2019-02-07
 - add feature dynamically when parse .csv file

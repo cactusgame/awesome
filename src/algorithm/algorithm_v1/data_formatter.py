@@ -6,7 +6,7 @@ from tensorflow_transform.tf_metadata import dataset_schema
 from src.extract.feature_definition import feature_extractor_definition
 from src.extract.feature_definition import FORMAT_NUMBER
 from src.extract.feature_definition import FORMAT_VOCABULARY
-from src.utils.logger import log
+from src.context import log
 
 
 class Target:

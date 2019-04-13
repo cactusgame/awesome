@@ -2,7 +2,7 @@ import time
 import os
 
 from src.base.config import cfg
-from src.utils.logger import log
+from src.context import log
 from src.base.preprocess.preprocessor import Preprocessor
 from src.algorithm.algorithm_v1.config import Config
 from src.algorithm.algorithm_v1.trainer import Trainer

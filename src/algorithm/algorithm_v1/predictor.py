@@ -5,7 +5,7 @@ from tensorflow.contrib import predictor
 from src.training.train_config import *
 from src.context import context
 from src.training.model import Model
-from src.utils.logger import log
+from src.context import log
 
 
 class Predictor:

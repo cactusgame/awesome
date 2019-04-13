@@ -22,7 +22,7 @@ from src.base.config import cfg
 from src.base.preprocess.preprocess_util import MapAndFilterErrors
 from src.base.preprocess.preprocess_util import PreprocessingFunction
 from src.utils.utils import import_from_uri
-from src.utils.logger import log
+from src.context import log
 
 """
 to preprocess the experiment log

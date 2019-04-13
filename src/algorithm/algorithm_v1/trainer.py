@@ -5,7 +5,7 @@ import tensorflow as tf
 import tensorflow_transform as tft
 
 from src.context import context
-from src.utils.logger import log
+from src.context import log
 from src.algorithm.algorithm_v1.config import cfg
 from src.algorithm.algorithm_v1.model import Model
 
