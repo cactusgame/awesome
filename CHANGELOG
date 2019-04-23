@@ -1,4 +1,7 @@
 project log:
+2019-04-23
+- extract sample features for 10 years
+- dockerize the training process
 
 2019-04-12
 - add `tool` folder for deploy
@@ -32,7 +35,7 @@ a version can fetch some simple data and do the preprocess transform
 - use DataFrame to store each feature and merge them together into sqlite
 
 2019-01-07:
-- use `run.sh` to launch the pod
+- use `run_xxx.sh` to launch the pod
 - logging to stderr and temp.log both
 
 2019-01-04

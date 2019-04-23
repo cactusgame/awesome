@@ -11,9 +11,9 @@ from tensorflow_transform.beam.tft_beam_io import transform_fn_io
 
 from src.context import log
 from src.context import context
-from src.algorithm.algorithm_v1.config import cfg
-from src.algorithm.algorithm_v1.data_formatter import DataFormatter
-from src.algorithm.algorithm_v1.data_formatter import Target
+from src.algorithm.prebuild_v1.config import cfg
+from src.algorithm.prebuild_v1.data_formatter import DataFormatter
+from src.algorithm.prebuild_v1.data_formatter import Target
 
 
 class SignatureKeys(object):

@@ -52,7 +52,14 @@ The pipeline is split into several parts
 - preprocessor : download the feature db from COS. Then convert the features defined in `DataFormatter` to `TFRecord`
 - trainer: use a specific algorithm to train the model
 
-#### how to run
+#### run training in docker
+```
+docker build -t ccr.ccs.tencentyun.com/prometheus/training-test:latest -f docker-training/Dockerfile .
+docker push ccr.ccs.tencentyun.com/prometheus/training-test:latest
+
+docker run -it ccr.ccs.tencentyun.com/prometheus/training-test:latest bash
+```
+#### run training locally
 ```
 python src/algorithm/xxx_algorithm/main.py
 ```

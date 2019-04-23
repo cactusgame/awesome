@@ -6,8 +6,8 @@ import tensorflow_transform as tft
 
 from src.context import context
 from src.context import log
-from src.algorithm.algorithm_v1.config import cfg
-from src.algorithm.algorithm_v1.model import Model
+from src.algorithm.prebuild_v1.config import cfg
+from src.algorithm.prebuild_v1.model import Model
 
 
 class Trainer:
@@ -17,16 +17,6 @@ class Trainer:
     def train(self):
         # the graph preprocessed by TFT preprocessing
         tf_transform_output = tft.TFTransformOutput(cfg.TARGET_DIR)
-
-        model_fn = self.model.make_model_fn(tf_transform_output)
-
-        run_config = tf.estimator.RunConfig(
-            keep_checkpoint_max=1,
-            # Checkpoints are already saved at each eval step.
-            save_checkpoints_secs=1000000000,
-            log_step_count_steps=1000,
-            save_summary_steps=1000,
-        )
 
         # Generate all `input_fn`s for the tf estimator
         train_input_fn = self.model.make_training_input_fn(

@@ -26,7 +26,6 @@ class FeatureExtractor:
                                                     fields='ts_code,name,area,industry,list_date')
         all_shares = all_shares_df['ts_code'][all_shares_df['list_date'] < end_date]
         # select part of all data for testing
-        # all_shares = all_shares[100:]
         for index, share in all_shares.iteritems():
             try:
                 print("[extractor] process the {} shares".format(index))

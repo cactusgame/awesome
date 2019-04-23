@@ -1,4 +1,4 @@
-from src.algorithm.algorithm_v1.data_formatter import Target
+from src.algorithm.prebuild_v1.data_formatter import Target
 
 
 class Coder:

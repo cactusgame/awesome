@@ -14,7 +14,6 @@ from tensorflow_transform import coders as tft_coders
 from apache_beam.io import textio
 from apache_beam.runners import DirectRunner
 
-from src.context import context
 from src.config.app_config import app_config
 
 from src.utils.file_util import FileUtil
@@ -33,7 +32,6 @@ get the .csv file's header(column name) first, keep it in somewhere
 
 class Preprocessor:
     def __init__(self):
-        log = context.logger
         self.exp_log_data_file_shuf = None
         self.exp_log_header = None
         self.data_formatter = import_from_uri(cfg.cls_data_formatter).DataFormatter()

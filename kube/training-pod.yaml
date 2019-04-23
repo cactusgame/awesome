@@ -2,18 +2,18 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: extractor-test
+  name: training-test
   namespace: default
 spec:
   restartPolicy: Never
   containers:
-  - name: extractor-test
+  - name: training-test
     securityContext:
       privileged: false
-    image: ccr.ccs.tencentyun.com/prometheus/extractor-test:latest
+    image: ccr.ccs.tencentyun.com/prometheus/training-test:latest
     imagePullPolicy: Always
     command: ["/bin/sh"]
-    args: ["-c","sh run_extractor.sh"]
+    args: ["-c","sh run_training.sh --algo_id prebuild_v1"]
     ports:
     - containerPort: 8080
     resources:
