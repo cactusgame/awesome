@@ -18,11 +18,11 @@ spec:
     - containerPort: 8080
     resources:
       requests:
-        cpu: 7500m
-        memory: 28Gi
+        cpu: 7000m
+        memory: 27Gi
       limits:
-        cpu: 7500m
-        memory: 28Gi
+        cpu: 7000m
+        memory: 27Gi
     volumeMounts:
       - name: featuredb
         mountPath: /tmp/featuredb

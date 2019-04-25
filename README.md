@@ -64,9 +64,15 @@ docker run -it ccr.ccs.tencentyun.com/prometheus/training-test:latest bash
 python src/algorithm/xxx_algorithm/main.py
 ```
 
+#### run the feature extractor by Pod
+You have to push the docker image first, then create it in k8s.
+```
+kubectl --context=training-stage create -f kube/training-pod.yaml
+```
 
 ## TODO list
-- extract all data
+- use pure CVM to test the process
+- use .csv directly but not sqlite
 - 有关熵的理解
 - end to end sample
 - tensor board

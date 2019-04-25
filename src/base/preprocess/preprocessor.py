@@ -39,7 +39,7 @@ class Preprocessor:
     def process(self):
         self.reset_env()
 
-        # self.download_features_db()
+        self.download_features_db()
 
         self.select_features()
 

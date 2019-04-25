@@ -16,6 +16,8 @@ import tushare as ts
 import time
 import os
 
+DEBUG_EXTRACTOR = True
+
 
 class FeatureExtractor:
     def __init__(self):
@@ -25,6 +27,10 @@ class FeatureExtractor:
         all_shares_df = context.tushare.stock_basic(exchange='', list_status='L',
                                                     fields='ts_code,name,area,industry,list_date')
         all_shares = all_shares_df['ts_code'][all_shares_df['list_date'] < end_date]
+
+        if DEBUG_EXTRACTOR:
+            all_shares = all_shares[:5]
+
         # select part of all data for testing
         for index, share in all_shares.iteritems():
             try:
@@ -136,10 +142,15 @@ class FeatureExtractor:
 if __name__ == "__main__":
     _start = time.time()
     extractor = FeatureExtractor()
-    # for test stage1, we should only extract recent 4000 days's data
-    extractor.extract_all(start_date='20050101', end_date='20181231')
-    # extractor.extract_one_share(share_id='000411.SZ', start_date='20050101', end_date='20181231')
 
-    # upload the db after extract the features
-    FileUtil.upload_data(os.path.abspath("awesome.db"))
+    if DEBUG_EXTRACTOR:
+        pass
+        # extractor.extract_one_share(share_id='000411.SZ', start_date='20050101', end_date='20181231')
+    else:
+        # for test stage1, we should only extract recent 4000 days's data
+        extractor.extract_all(start_date='20050101', end_date='20181231')
+
+        # upload the db after extract the features
+        FileUtil.upload_data(os.path.abspath("awesome.db"))
+
     log.info("extracting completed, use time {}s".format(str(time.time() - _start)))

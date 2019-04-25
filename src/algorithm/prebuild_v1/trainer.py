@@ -32,8 +32,8 @@ class Trainer:
 
         estimator = tf.estimator.LinearClassifier(
             feature_columns=self.model.create_feature_columns(tf_transform_output))
-        estimator.train(train_input_fn, steps=2000)
-        eval_evalset_result = estimator.evaluate(eval_input_fn, steps=1000, name='eval')
+        estimator.train(train_input_fn, steps=cfg.TRAIN_MAX_STEPS)
+        eval_evalset_result = estimator.evaluate(eval_input_fn, steps=cfg.EVAL_STEPS, name='eval')
         print eval_evalset_result
 
         estimator.export_savedmodel(cfg.TARGET_DIR, make_serving_input_fn, strip_default_attrs=True)

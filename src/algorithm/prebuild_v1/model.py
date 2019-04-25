@@ -45,7 +45,7 @@ class Model:
                 parser_num_threads=mp.cpu_count(),
                 prefetch_buffer_size=1,
                 # we use `step` in Estimator API to controll when to stop the training
-                num_epochs=1,
+                # num_epochs=1,
                 shuffle_buffer_size=cfg.SHUFFLE_BUFFER_SIZE,
                 shuffle=True)
             dataset = dataset.map(parse_function, num_parallel_calls=mp.cpu_count())
