@@ -1,110 +1,40 @@
-import json
-import sys
-import sqlite3 as lite
-from src.extract.feature_definition import feature_extractor_definition
-from src.extract.feature_definition import TYPE_INFER
+from src.extract.feature_sdk_sqlite import FeatureSDKSqliteImpl
+from src.extract.feature_sdk_csv import FeatureSDKCsvImpl
 
 
 class FeatureSDK():
-    def __init__(self, recreate_table=True):
-        self.recreate_table = recreate_table
-        self.table_name = "FEATURE"
-        self.connection = self.__get_connection()  # using sqllite, the storage is a db connection
+    def __init__(self):
+        self.impl = FeatureSDKSqliteImpl()
+        # self.impl = FeatureSDKCsvImpl()
 
-        if recreate_table:
-            self.__update_feature_table_columns()
+        self.init_storage()
 
-    def save(self, feature_names, values):
-        assert len(feature_names) == len(values)
-
-        c = self.connection.cursor()
-        sql_values = ["'{}'".format(x) if type(x) is str else str(x) for x in values]  # convert the str to 'str'
-        sql = "INSERT INTO {table_name} ({feature_names}) VALUES ({values})".format(
-            table_name=self.table_name,
-            feature_names=",".join(feature_names),
-            values=",".join(sql_values))
-        # print(">>>> " + sql)
-        c.execute(sql)
-
-    def save2(self, dt, share_id, feature_names, values):
-        '''
-        you must call `commit` after 'save'
-        the len(feature_names) must equals to len(values)
-        '''
-        assert len(feature_names) == len(values)
-        # print("save ", dt, share_id, feature_names, values)
-
-        c = self.connection.cursor()
-        sql_values = ["'{}'".format(x) if type(x) is str else str(x) for x in values]  # convert the str to 'str'
-        sql = "INSERT INTO {} (time,share_id,{}) VALUES ({},{},{})".format(
-            self.table_name,
-            ",".join(feature_names),
-            "'" + dt + "'",
-            "'" + share_id + "'",
-            ",".join(sql_values))
-        print(">>>> " + sql)
-        c.execute(sql)
-
-    def commit(self):
-        self.connection.commit()
-
-    def get(self):
-        c = self.connection.cursor()
-        cursor = c.execute("SELECT * FROM {}".format(self.table_name))
-        values = cursor.fetchall()
-        print(values)
-
-    # ----- private -----
-    def __get_connection(self):
-        try:
-            con = lite.connect('awesome.db')
-        except lite.Error, e:
-            print "Error %s:" % e.args[0]
-            sys.exit(1)
-        return con
-
-    def __update_feature_table_columns(self):
+    def init_storage(self):
         """
-        update the feature table in feature.db
-        according the `feature_definition` file
+        currently, the method will re-create the file, table or something.
+        in the future, you may only append new data but without recreate the storage
         :return:
         """
-        self.__init_table()
+        self.impl.init_storage()
 
-        # filter out field need to store into db
-        feature_dict_sorted_keys = [key for key in feature_extractor_definition.keys() if
-                                    feature_extractor_definition[key][5] != TYPE_INFER]
-        feature_dict_sorted_keys.sort()
-        for key in feature_dict_sorted_keys:
-            if not self.__has_feature_column(key):
-                self.__add_feature_column(key, feature_extractor_definition[key])
+    def save(self, feature_names, values):
+        """
+        save the specific values with the specific column names
+        the save process is only save into memory or buffer, you must call `commit` to flush the saved content
+        :param feature_names: a list of feature names
+        :param values: a list of values
+        :return:
+        """
+        self.impl.save(feature_names, values)
 
-    def __init_table(self):
-        try:
-            c = self.connection.cursor()
-            if self.recreate_table:
-                c.execute("DROP TABLE IF EXISTS {};".format(self.table_name))
-            c.execute('''CREATE TABLE IF NOT EXISTS {}
-                   (time        CHAR(25)    NOT NULL,
-                   share_id     CHAR(15)    NOT NULL,
-                   primary key(TIME,SHARE_ID))  ;'''.format(self.table_name))
-        except Exception, err:
-            print(err)
-
-    def __has_feature_column(self, key):
-        c = self.connection.cursor()
-        columns = [i[1] for i in c.execute('PRAGMA table_info({})'.format(self.table_name))]
-        if key in columns:
-            return True
-        return False
-
-    def __add_feature_column(self, key, value_type):
-        print("to add column name={} type={}".format(key, value_type[1]))
-        c = self.connection.cursor()
-        c.execute('ALTER TABLE {} ADD COLUMN {} {}'.format(self.table_name, key, value_type[1]))
+    def commit(self):
+        """
+        flush the saved content
+        :return:
+        """
+        self.impl.commit()
 
 
 if __name__ == "__main__":
     # test case
-    sdk = FeatureSDK(recreate_table=False)
-    sdk.get()
+    sdk = FeatureSDK()

@@ -144,7 +144,7 @@ if __name__ == "__main__":
     extractor = FeatureExtractor()
 
     if DEBUG_EXTRACTOR:
-        pass
+        extractor.extract_all(start_date='20050101', end_date='20181231')
         # extractor.extract_one_share(share_id='000411.SZ', start_date='20050101', end_date='20181231')
     else:
         # for test stage1, we should only extract recent 4000 days's data
