@@ -48,6 +48,8 @@ feature_extractor_definition["close_b18"] = ("float", "REAL", "tf.FixedLenFeatur
 feature_extractor_definition["close_b19"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE)
 feature_extractor_definition["close_b20"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE)
 feature_extractor_definition["share_id"] = ("str", "REAL", "tf.FixedLenFeature", FORMAT_VOCABULARY, tf.string, TYPE_FEATURE)
+feature_extractor_definition["time"] = ("str", "REAL", "tf.FixedLenFeature", FORMAT_VOCABULARY, tf.string, TYPE_FEATURE)
+
 
 ### Targets
 # only trading day, exclude holidays

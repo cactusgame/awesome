@@ -4,8 +4,8 @@ from src.extract.feature_sdk_csv import FeatureSDKCsvImpl
 
 class FeatureSDK():
     def __init__(self):
-        self.impl = FeatureSDKSqliteImpl()
-        # self.impl = FeatureSDKCsvImpl()
+        # self.impl = FeatureSDKSqliteImpl()
+        self.impl = FeatureSDKCsvImpl()
 
         self.init_storage()
 
@@ -33,6 +33,13 @@ class FeatureSDK():
         :return:
         """
         self.impl.commit()
+
+    def close(self):
+        """
+        when close the sdk
+        :return:
+        """
+        self.impl.close()
 
 
 if __name__ == "__main__":

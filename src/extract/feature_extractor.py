@@ -41,6 +41,7 @@ class FeatureExtractor:
                                                                                                       end_date))
                 log.error("[error]" + traceback.format_exc())
             time.sleep(1)
+        self.sdk.close()
 
     def extract_one_share(self, share_id, start_date, end_date):
         """

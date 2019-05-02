@@ -71,8 +71,6 @@ kubectl --context=training-stage create -f kube/training-pod.yaml
 ```
 
 ## TODO list
-- use pure CVM to test the process
-- use .csv directly but not sqlite
 - 有关熵的理解
 - end to end sample
 - tensor board

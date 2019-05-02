@@ -1,4 +1,8 @@
 project log:
+2019-05-02:
+- use 2 ways to implement the feature sdk. includes `sqlite` and `csv`
+- reverse 4 digits for all float type in python
+
 2019-04-23
 - extract sample features for 10 years
 - dockerize the training process

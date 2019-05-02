@@ -28,6 +28,9 @@ class FeatureSDKSqliteImpl():
     def commit(self):
         self.connection.commit()
 
+    def close(self):
+        pass
+
     def get_all(self):
         c = self.connection.cursor()
         cursor = c.execute("SELECT * FROM {} limit 10".format(self.table_name))
