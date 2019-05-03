@@ -16,7 +16,7 @@ import tushare as ts
 import time
 import os
 
-DEBUG_EXTRACTOR = True
+DEBUG_EXTRACTOR = False
 
 
 class FeatureExtractor:

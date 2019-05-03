@@ -1,9 +1,7 @@
-import json
 import csv
-import sys
-import sqlite3 as lite
 from src.extract.feature_definition import feature_extractor_definition
 from src.extract.feature_definition import TYPE_INFER
+from src.utils.file_util import FileUtil
 
 
 class FeatureSDKCsvImpl():
@@ -42,6 +40,10 @@ class FeatureSDKCsvImpl():
         with open("awesome.db", 'r') as csvfile:
             for line in csvfile:
                 print(line)
+
+    @staticmethod
+    def download():
+        FileUtil.download_data("/dv/data/awesome.db", "awesome.db")
 
     def _update_feature_table_columns(self):
         """

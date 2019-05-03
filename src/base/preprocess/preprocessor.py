@@ -6,7 +6,6 @@ import apache_beam as beam
 import tempfile
 import shutil
 import csv
-import sqlite3
 
 from tensorflow_transform.beam import impl as beam_impl
 from tensorflow_transform.beam.tft_beam_io import transform_fn_io
@@ -21,6 +20,7 @@ from src.base.config import cfg
 from src.base.preprocess.preprocess_util import MapAndFilterErrors
 from src.base.preprocess.preprocess_util import PreprocessingFunction
 from src.utils.utils import import_from_uri
+from src.extract.feature_sdk import FeatureSDK
 from src.context import log
 
 """
@@ -60,21 +60,12 @@ class Preprocessor:
 
     def download_features_db(self):
         """
+        the download process is implemented in the feature SDK
         1. donwload the awesome.db from COS
         2. export to .csv
         :return:
         """
-        FileUtil.download_data("/dv/data/awesome.db", "awesome.db")
-
-        conn = sqlite3.connect('awesome.db')
-        cursor = conn.cursor()
-        cursor.execute("select * from FEATURE;")
-
-        csv_file = FileUtil.open_file("data/features_db.csv", "wb")
-        csv_writer = csv.writer(csv_file)
-        csv_writer.writerow([i[0] for i in cursor.description])  # write headers
-        csv_writer.writerows(cursor)
-        csv_file.close()
+        FeatureSDK.download()
 
     def select_features(self):
         """
@@ -102,7 +93,7 @@ class Preprocessor:
         log.info('shuff start')
 
         # Use terashuf quasi-shuffle
-        FileUtil.save_remove_first_line(cfg.exp_file_path,cfg.exp_log_data_file_shuf_tmp)
+        FileUtil.save_remove_first_line(cfg.exp_file_path, cfg.exp_log_data_file_shuf_tmp)
 
         shuf_cmd = 'MEMORY={:.1f} terashuf < {} > {}'.format(cfg.SHUF_MEM, cfg.exp_log_data_file_shuf_tmp,
                                                              cfg.exp_log_data_file_shuf)
@@ -247,7 +238,8 @@ class Preprocessor:
             python_command = app_config.SUBPROCESS_PYTHON  # Notice: the python must the same python as the master process
             call = [python_command, _exec_path, str(i), str(cfg.DATASET_NUM_SHARDS),
                     cfg.exp_log_data_file_train_shard, cfg.exp_log_data_file_eval_shard,
-                    cfg.exp_log_data_file_train_tfrecord, cfg.exp_log_data_file_eval_tfrecord, cfg.TARGET_DIR,data_formatter_module_path]
+                    cfg.exp_log_data_file_train_tfrecord, cfg.exp_log_data_file_eval_tfrecord, cfg.TARGET_DIR,
+                    data_formatter_module_path]
             log.info("Sub process command to transform: {}".format(call))
 
             results.append(subprocess.Popen(call))

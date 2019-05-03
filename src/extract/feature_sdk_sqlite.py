@@ -1,8 +1,10 @@
-import json
 import sys
+import csv
 import sqlite3 as lite
+
 from src.extract.feature_definition import feature_extractor_definition
 from src.extract.feature_definition import TYPE_INFER
+from src.utils.file_util import FileUtil
 
 
 class FeatureSDKSqliteImpl():
@@ -36,6 +38,20 @@ class FeatureSDKSqliteImpl():
         cursor = c.execute("SELECT * FROM {} limit 10".format(self.table_name))
         values = cursor.fetchall()
         print(values)
+
+    @staticmethod
+    def download():
+        FileUtil.download_data("/dv/data/awesome.db", "awesome.db")
+
+        conn = lite.connect('awesome.db')
+        cursor = conn.cursor()
+        cursor.execute("select * from FEATURE;")
+
+        csv_file = FileUtil.open_file("data/features_db.csv", "wb")
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow([i[0] for i in cursor.description])  # write headers
+        csv_writer.writerows(cursor)
+        csv_file.close()
 
     def _get_connection(self):
         try:

@@ -3,6 +3,11 @@ from src.extract.feature_sdk_csv import FeatureSDKCsvImpl
 
 
 class FeatureSDK():
+    @staticmethod
+    def download():
+        FeatureSDKCsvImpl.download()
+        # FeatureSDKSqliteImpl.download()
+
     def __init__(self):
         # self.impl = FeatureSDKSqliteImpl()
         self.impl = FeatureSDKCsvImpl()
@@ -40,8 +45,3 @@ class FeatureSDK():
         :return:
         """
         self.impl.close()
-
-
-if __name__ == "__main__":
-    # test case
-    sdk = FeatureSDK()
