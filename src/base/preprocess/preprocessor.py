@@ -39,18 +39,25 @@ class Preprocessor:
     def process(self):
         self.reset_env()
 
+        print("start to download feature db")
         self.download_features_db()
 
+        print("start to select features")
         self.select_features()
 
+        print("start to shuf")
         self.shuf()
 
+        print("start to divide train and eval set")
         self.divide_train_eval()
 
+        print("start to split into shards")
         self.split_to_shards()
 
+        print("start to build graph")
         self.build_graph()
 
+        print("start to transform")
         self.transform()
 
     def reset_env(self):
