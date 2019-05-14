@@ -37,10 +37,14 @@ class Preprocessor:
         self.data_formatter = import_from_uri(cfg.cls_data_formatter).DataFormatter()
 
     def process(self):
+        if not cfg.do_preprocessing:
+            return
+
         self.reset_env()
 
         print("start to download feature db")
-        self.download_features_db()
+        if cfg.download_feature_db:
+            self.download_features_db()
 
         print("start to select features")
         self.select_features()
@@ -79,12 +83,14 @@ class Preprocessor:
         according to `DataFormatter`, select features used in the algorithm and add target
         :return:
         """
+        os.system("mkdir data")
         coder = import_from_uri(cfg.cls_coder).Coder(self.data_formatter)
 
         output = open(cfg.exp_file_path, 'w')
         writer = csv.DictWriter(output, fieldnames=self.data_formatter.get_features_and_targets(), delimiter=',')
 
-        input_file = open(cfg.feature_db_path, 'rb')
+        # for testing, the local awesome.db only has 1000 rows
+        input_file = open("awesome.db", 'rb')
         reader = csv.DictReader(input_file, delimiter=',')
 
         writer.writeheader()

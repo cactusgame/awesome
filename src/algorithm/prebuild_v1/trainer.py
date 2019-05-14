@@ -6,8 +6,8 @@ import tensorflow_transform as tft
 
 from src.context import context
 from src.context import log
-from src.algorithm.prebuild_v1.config import cfg
-from src.algorithm.prebuild_v1.model import Model
+from src.base.config import cfg
+from model import Model
 
 
 class Trainer:

@@ -15,21 +15,36 @@ class Target:
 
 class DataFormatter:
     def __init__(self):
-        # feature name : feature type
-        self.VOCABULARY_FEATURES = []
-        # self.VOCABULARY_FEATURES.append('share_id')
-
         self.FEATURES = []
+        # vocabulary features
+        self.FEATURES.append('share_id')
+        # float features
         self.FEATURES.append('close_b0')
         self.FEATURES.append('close_b1')
         self.FEATURES.append('close_b2')
-
-        self.FEATURES = self.FEATURES + self.VOCABULARY_FEATURES
+        self.FEATURES.append('close_b3')
+        self.FEATURES.append('close_b4')
+        self.FEATURES.append('close_b5')
+        self.FEATURES.append('close_b6')
+        self.FEATURES.append('close_b7')
+        self.FEATURES.append('close_b8')
+        self.FEATURES.append('close_b9')
+        self.FEATURES.append('close_b10')
+        self.FEATURES.append('close_b11')
+        self.FEATURES.append('close_b12')
+        self.FEATURES.append('close_b13')
+        self.FEATURES.append('close_b14')
+        self.FEATURES.append('close_b15')
+        self.FEATURES.append('close_b16')
+        self.FEATURES.append('close_b17')
+        self.FEATURES.append('close_b18')
+        self.FEATURES.append('close_b19')
+        self.FEATURES.append('close_b20')
 
         self.TARGETS = []
         self.TARGETS.append(Target.ROR_20_DAYS_BOOL)
 
-        # store the features according its type
+        # store the features by data type
         self.number_features = []
         self.vocabulary_features = []
         for key in self.FEATURES:

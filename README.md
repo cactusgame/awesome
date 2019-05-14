@@ -18,6 +18,8 @@ docker push ccr.ccs.tencentyun.com/prometheus/extractor-test-base:latest
 ```
 docker build -t ccr.ccs.tencentyun.com/prometheus/extractor-test:latest -f docker-extractor/Dockerfile .
 docker push ccr.ccs.tencentyun.com/prometheus/extractor-test:latest
+kubectl --context=training-stage create -f kube/extractor-pod.yaml
+echo "extracting done"
 ```
 
 #### run the feature extractor by Pod
@@ -56,6 +58,8 @@ The pipeline is split into several parts
 ```
 docker build -t ccr.ccs.tencentyun.com/prometheus/training-test:latest -f docker-training/Dockerfile .
 docker push ccr.ccs.tencentyun.com/prometheus/training-test:latest
+kubectl --context=training-stage create -f kube/training-pod.yaml
+echo "training done"
 
 docker run -it ccr.ccs.tencentyun.com/prometheus/training-test:latest bash
 ```
@@ -70,9 +74,22 @@ You have to push the docker image first, then create it in k8s.
 kubectl --context=training-stage create -f kube/training-pod.yaml
 ```
 
+
+## Test result
+#### prebuild_v1: LinearClassifier
+features: share_id,close0-20
+result  : {'loss': 11.054411, 'accuracy_baseline': 0.503875, 'global_step': 1000000, 'recall': 0.60543287, 'auc': 0.5334816, 'prediction/mean': 0.5041689, 'precision': 0.5238811, 'label/mean': 0.503875, 'average_loss': 0.6909007, 'auc_precision_recall': 0.53230953, 'accuracy': 0.5239375}
+
+features: time,share_id,close0-20
+result  :{'loss': 7.8904605, 'accuracy_baseline': 0.5008125, 'global_step': 1000000, 'recall': 0.740297, 'auc': 0.83925486, 'prediction/mean': 0.5027409, 'precision': 0.76670545, 'label/mean': 0.5008125, 'average_loss': 0.49315378, 'auc_precision_recall': 0.8436985, 'accuracy': 0.757125}
+tip: I should not use feature `time`, because different shares in the same `time` has the same trend
+
+#### prebuild_v2: DNNClassifier with Tensorboard
+
+
 ## TODO list
+- to distingwish production and debugging
 - 有关熵的理解
 - end to end sample
 - tensor board
 - model anaylis
-- add `share_id`, `time` features

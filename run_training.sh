@@ -15,18 +15,38 @@ while [ "${1:-}" != "" ]; do
             ALGO_ID=$1
             TRAIN_OPTIONS="${TRAIN_OPTIONS} --algo_id=${ALGO_ID} "
             ;;
-
+        "--train_steps")
+            shift
+            TRAIN_STEPS=$1
+            TRAIN_OPTIONS="${TRAIN_OPTIONS} --train_steps=${TRAIN_STEPS} "
+            ;;
+        "--download_feature_db")
+            shift
+            DOWNLOAD_FEATURE_DB=$1
+            TRAIN_OPTIONS="${TRAIN_OPTIONS} --download_feature_db=${DOWNLOAD_FEATURE_DB} "
+            ;;
+        "--do_preprocessing")
+            shift
+            DO_PREPROCESSING=$1
+            TRAIN_OPTIONS="${TRAIN_OPTIONS} --do_preprocessing=${DO_PREPROCESSING} "
+            ;;
     esac
     shift
 done
 
 echo "Training Model for"
-echo "AlgoID: "${ALGO_ID}
+echo "ALGO_ID: "${ALGO_ID}
+echo "TRAIN_STEPS: "${TRAIN_STEPS}
+echo "DOWNLOAD_FEATURE_DB: "${DOWNLOAD_FEATURE_DB}
+echo "DO_PREPROCESSING: "${DO_PREPROCESSING}
 echo ""
 echo "TRAINING OPTIONS: "${TRAIN_OPTIONS}
 
 # Export Model details as environment vars.
 export ALGO_ID=${ALGO_ID}
+export TRAIN_STEPS=${TRAIN_STEPS}
+export DOWNLOAD_FEATURE_DB=${DOWNLOAD_FEATURE_DB}
+export DO_PREPROCESSING=${DO_PREPROCESSING}
 
 mkdir -p /tmp/log
 

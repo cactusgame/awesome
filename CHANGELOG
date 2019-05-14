@@ -1,4 +1,9 @@
 project log:
+2019-05-14:
+- use more features to do a test
+- add more command parameters: `train_steps`, `download_feature_db`, `do_preprocessing`
+- freeze `prebuild_v1`
+
 2019-05-02:
 - use 2 ways to implement the feature sdk. includes `sqlite` and `csv`
 - reverse 4 digits for all float type in python

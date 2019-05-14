@@ -1,4 +1,4 @@
-from src.algorithm.prebuild_v1.data_formatter import Target
+from data_formatter import Target
 
 
 class Coder:
@@ -12,5 +12,7 @@ class Coder:
             line[key] = row_dict[key]
 
         # parse targets
-        line[Target.ROR_20_DAYS_BOOL] = 1 if float(row_dict['ror_20_days']) > 0 else 0 # label must > 0
+        # if you want to do the sanity check, you could open this comment
+        # line[Target.ROR_20_DAYS_BOOL] = 1
+        line[Target.ROR_20_DAYS_BOOL] = 1 if float(row_dict['ror_20_days']) > 0 else 0  # label must > 0
         return line
