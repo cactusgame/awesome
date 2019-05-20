@@ -85,10 +85,16 @@ result  :{'loss': 7.8904605, 'accuracy_baseline': 0.5008125, 'global_step': 1000
 tip: I should not use feature `time`, because different shares in the same `time` has the same trend
 
 #### prebuild_v2: DNNClassifier with Tensorboard
+features: share_id,close0-20
+result: {'loss': 10.751576, 'accuracy_baseline': 0.5085625, 'global_step': 1000000, 'recall': 0.5825243, 'auc': 0.61233175, 'prediction/mean': 0.505836, 'precision': 0.5855466, 'label/mean': 0.5085625, 'average_loss': 0.6719735, 'auc_precision_recall': 0.62195647, 'accuracy': 0.578}
+
+features: share_id,close0-20    
+specific 2 classes and change the hidden layer         hidden_units = [256, 128, 64]
+
+{'loss': 10.645561, 'accuracy_baseline': 0.5015, 'global_step': 1000000, 'recall': 0.6064307, 'auc': 0.63192403, 'prediction/mean': 0.5171307, 'precision': 0.58443433, 'label/mean': 0.5015, 'average_loss': 0.6653476, 'auc_precision_recall': 0.6384548, 'accuracy': 0.586375}
 
 
 ## TODO list
-- to distingwish production and debugging
 - 有关熵的理解
 - end to end sample
 - tensor board

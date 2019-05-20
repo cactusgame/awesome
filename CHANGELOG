@@ -1,4 +1,7 @@
 project log:
+2019-05-16:
+- add checkpoint for training
+
 2019-05-14:
 - use more features to do a test
 - add more command parameters: `train_steps`, `download_feature_db`, `do_preprocessing`
