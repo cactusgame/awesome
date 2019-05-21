@@ -1,4 +1,7 @@
 project log:
+2019-05-22:
+- upload the exported models to cos
+
 2019-05-16:
 - add checkpoint for training
 
