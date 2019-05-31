@@ -36,7 +36,7 @@ class FileUtil():
         :return:
         """
         filename = (os.path.basename(file_abs_path))
-        cmd = "coscmd -b heai-seed-rec-service-dev-1256590953 upload " + file_abs_path + " dv/data/" + filename
+        cmd = "coscmd -b peng-1256590953 upload " + file_abs_path + " /data/" + filename
         # cmd = "cp awesome.db /tmp/featuredb"  # this will persist on Node disk
         status, output = commands.getstatusoutput(cmd)
         print(str(status) + " " + str(output))
@@ -51,7 +51,7 @@ class FileUtil():
         :return:
         """
         local_path = os.path.abspath(local_file_name)
-        cmd = "coscmd -b heai-seed-rec-service-dev-1256590953 download -f {} {}".format(filepath_in_cos,local_path)
+        cmd = "coscmd -b peng-1256590953 download -f {} {}".format(filepath_in_cos,local_path)
         status, output = commands.getstatusoutput(cmd)
         print(str(status) + " " + str(output))
 

@@ -43,7 +43,7 @@ class FeatureSDKCsvImpl():
 
     @staticmethod
     def download():
-        FileUtil.download_data("/dv/data/awesome.db", "awesome.db")
+        FileUtil.download_data("/data/awesome.db", "awesome.db")
 
     def _update_feature_table_columns(self):
         """

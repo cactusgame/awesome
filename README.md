@@ -95,7 +95,6 @@ specific 2 classes and change the hidden layer         hidden_units = [256, 128,
 
 
 ## TODO list
-- 有关熵的理解
-- end to end sample
 - tensor board
 - model anaylis
+- end to end

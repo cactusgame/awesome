@@ -7,6 +7,8 @@ from src.context import log
 from src.base.preprocess.preprocessor import Preprocessor
 from config import Config
 from trainer import Trainer
+from src.base.uploader import Uploader
+from src.base.env import Env
 
 
 @click.command(context_settings=dict(ignore_unknown_options=True, allow_extra_args=True))
@@ -23,11 +25,15 @@ def main(algo_id=None, train_steps=None, download_feature_db=None, do_preprocess
         cfg.cls_data_formatter = os.path.normpath(os.path.join(os.path.dirname(__file__), 'data_formatter.py'))
         cfg.cls_coder = os.path.normpath(os.path.join(os.path.dirname(__file__), 'coder.py'))
 
+        Env.init()
+
         preprocessor = Preprocessor()
         preprocessor.process()
 
         trainer = Trainer()
         trainer.train()
+
+        Uploader.upload_model()
 
         log.info("[total] use {} seconds totally".format(time.time() - _start))
     except Exception as e:
