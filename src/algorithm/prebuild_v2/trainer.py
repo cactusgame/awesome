@@ -43,7 +43,7 @@ class Trainer:
         eval_evalset_result = estimator.evaluate(eval_input_fn, steps=cfg.EVAL_STEPS, name='eval')
         print eval_evalset_result
 
-        estimator.export_savedmodel(cfg.TARGET_DIR, make_serving_input_fn, strip_default_attrs=True)
+        estimator.export_savedmodel(cfg.TARGET_MODEL_DIR, make_serving_input_fn, strip_default_attrs=True)
 
 
 if __name__ == "__main__":

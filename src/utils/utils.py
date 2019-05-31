@@ -1,5 +1,18 @@
 import os
 import imp
+from src.base.config import cfg
+
+
+def get_model_timestamp():
+    """
+    get the TF model timestamp. The timestamp only exist after the model has been generated
+    :return:
+    """
+    # get model timestamp
+    for root, dirs, files in os.walk(cfg.TARGET_DIR, topdown=False):
+        if root == cfg.TARGET_MODEL_DIR:
+            return dirs[0]
+    return None
 
 
 def import_from_uri(uri, absl=True):

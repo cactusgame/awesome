@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: training-test8
+  name: training-test
   namespace: default
 spec:
   restartPolicy: Never

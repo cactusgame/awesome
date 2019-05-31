@@ -41,7 +41,7 @@ class FeatureSDKSqliteImpl():
 
     @staticmethod
     def download():
-        FileUtil.download_data("/data/awesome.db", "awesome.db")
+        FileUtil.download_data("data/awesome.db", "awesome.db")
 
         conn = lite.connect('awesome.db')
         cursor = conn.cursor()

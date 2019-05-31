@@ -36,7 +36,7 @@ class FileUtil():
         :return:
         """
         filename = (os.path.basename(file_abs_path))
-        cmd = "coscmd -b peng-1256590953 upload " + file_abs_path + " /data/" + filename
+        cmd = "coscmd -b peng-1256590953 upload " + file_abs_path + " data/" + filename
         # cmd = "cp awesome.db /tmp/featuredb"  # this will persist on Node disk
         status, output = commands.getstatusoutput(cmd)
         print(str(status) + " " + str(output))
