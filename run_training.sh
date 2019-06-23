@@ -30,6 +30,11 @@ while [ "${1:-}" != "" ]; do
             DO_PREPROCESSING=$1
             TRAIN_OPTIONS="${TRAIN_OPTIONS} --do_preprocessing=${DO_PREPROCESSING} "
             ;;
+        "--upload_model")
+            shift
+            UPLOAD_MODEL=$1
+            TRAIN_OPTIONS="${TRAIN_OPTIONS} --upload_model=${UPLOAD_MODEL} "
+            ;;
     esac
     shift
 done
@@ -39,6 +44,7 @@ echo "ALGO_ID: "${ALGO_ID}
 echo "TRAIN_STEPS: "${TRAIN_STEPS}
 echo "DOWNLOAD_FEATURE_DB: "${DOWNLOAD_FEATURE_DB}
 echo "DO_PREPROCESSING: "${DO_PREPROCESSING}
+echo "UPLOAD_MODEL: "${UPLOAD_MODEL}
 echo ""
 echo "TRAINING OPTIONS: "${TRAIN_OPTIONS}
 

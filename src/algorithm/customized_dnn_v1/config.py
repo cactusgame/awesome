@@ -89,14 +89,20 @@ class Config:
     cls_data_formatter = ''
     cls_coder = ''
 
-    def __init__(self, algo_id, train_steps, download_feature_db, do_preprocessing):
+    def __init__(self, algo_id, train_steps, download_feature_db, do_preprocessing, upload_model):
         self.algo_id = algo_id
 
+        self.download_feature_db = True
         if download_feature_db is not None:
             self.download_feature_db = download_feature_db
 
+        self.do_preprocessing = True
         if do_preprocessing is not None:
             self.do_preprocessing = do_preprocessing
+
+        self.upload_model = False
+        if upload_model is not None:
+            self.upload_model = upload_model
 
         if train_steps is not None:
             self.TRAIN_INC_STEPS = train_steps

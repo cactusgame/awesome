@@ -7,7 +7,7 @@ from src.extract.feature_definition import TYPE_INFER
 from src.utils.file_util import FileUtil
 
 
-class FeatureSDKSqliteImpl():
+class FeatureSDKSqliteImpl:
     def __init__(self):
         self.table_name = "FEATURE"
         self.connection = self._get_connection()  # using sqllite, the storage is a db connection

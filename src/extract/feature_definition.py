@@ -1,5 +1,12 @@
 import tensorflow as tf
 
+# define different type of features, usually, it's depends on the data source or data API
+FEATURE_ALL = "feature_all"
+FEATURE_BASIC = "feature_basic"
+FEATURE_FINANCE = "feature_finance"
+
+DOWNLOAD_FEATURES = [FEATURE_BASIC]
+
 feature_definition_config = {}
 feature_definition_config["close_n_days_before"] = 21
 feature_definition_config["ror_n_days_after"] = 60

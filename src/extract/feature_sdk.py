@@ -2,15 +2,16 @@ from src.extract.feature_sdk_sqlite import FeatureSDKSqliteImpl
 from src.extract.feature_sdk_csv import FeatureSDKCsvImpl
 
 
-class FeatureSDK():
+class FeatureSDK:
+
     @staticmethod
     def download():
         FeatureSDKCsvImpl.download()
         # FeatureSDKSqliteImpl.download()
 
-    def __init__(self):
+    def __init__(self, feature_data_source):
         # self.impl = FeatureSDKSqliteImpl()
-        self.impl = FeatureSDKCsvImpl()
+        self.impl = FeatureSDKCsvImpl(feature_data_source)
 
         self.init_storage()
 
@@ -34,7 +35,7 @@ class FeatureSDK():
 
     def commit(self):
         """
-        flush the saved content
+        flush the saved content, upload
         :return:
         """
         self.impl.commit()

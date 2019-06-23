@@ -22,6 +22,7 @@ from src.base.preprocess.preprocess_util import PreprocessingFunction
 from src.utils.utils import import_from_uri
 from src.extract.feature_sdk import FeatureSDK
 from src.context import log
+from src.extract.feature_definition import FEATURE_ALL
 
 """
 to preprocess the experiment log
@@ -72,8 +73,8 @@ class Preprocessor:
     def download_features_db(self):
         """
         the download process is implemented in the feature SDK
-        1. donwload the awesome.db from COS
-        2. export to .csv
+        1. donwload the xxx.csv from COS
+        2. merge all .csv files
         :return:
         """
         FeatureSDK.download()
@@ -81,6 +82,8 @@ class Preprocessor:
     def select_features(self):
         """
         according to `DataFormatter`, select features used in the algorithm and add target
+
+
         :return:
         """
         os.system("mkdir data")
@@ -89,14 +92,15 @@ class Preprocessor:
         output = open(cfg.exp_file_path, 'w')
         writer = csv.DictWriter(output, fieldnames=self.data_formatter.get_features_and_targets(), delimiter=',')
 
-        # for testing, the local awesome.db only has 1000 rows
-        input_file = open("awesome.db", 'rb')
+        # for testing, the local FEATURE_ALL only has 1000 rows
+        input_file = open("{}.csv".format(FEATURE_ALL), 'rb')
         reader = csv.DictReader(input_file, delimiter=',')
 
         writer.writeheader()
         for row in reader:
             line = coder.parse(row)
-            writer.writerow(line)
+            if line is not None:
+                writer.writerow(line)
 
         input_file.close()
         output.close()

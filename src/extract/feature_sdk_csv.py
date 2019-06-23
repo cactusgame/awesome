@@ -1,15 +1,21 @@
 import csv
+import os
 from src.extract.feature_definition import feature_extractor_definition
 from src.extract.feature_definition import TYPE_INFER
 from src.utils.file_util import FileUtil
+from src.extract.feature_definition import DOWNLOAD_FEATURES
+from src.extract.econfig import econfig
 
 
-class FeatureSDKCsvImpl():
-    def __init__(self):
+class FeatureSDKCsvImpl:
+    def __init__(self, feature_data_source):
         # create csv file
         self.feature_columns = None
         self.csv_writer = None
-        self.csvfile = open("awesome.db", 'w')
+        self.feature_data_source = feature_data_source
+        self.feature_data_csv = "{}.csv".format(feature_data_source)
+        self.csvfile = open(self.feature_data_csv, 'w')
+        self.enable_upload = False if econfig.DEBUG else True
 
     def init_storage(self):
         self._update_feature_table_columns()
@@ -31,19 +37,38 @@ class FeatureSDKCsvImpl():
         self.csv_writer.writerow(line)
 
     def commit(self):
+        """
+        1 share extraction complete
+        :return:
+        """
         pass
 
     def close(self):
+        """
+        all shares extraction complete
+        :return:
+        """
+        if self.enable_upload or True:
+            FileUtil.upload_data(os.path.abspath(self.feature_data_csv))
         self.csvfile.close()
 
     def get(self):
-        with open("awesome.db", 'r') as csvfile:
+        with open(self.feature_data_csv, 'r') as csvfile:
             for line in csvfile:
                 print(line)
 
     @staticmethod
     def download():
-        FileUtil.download_data("data/awesome.db", "awesome.db")
+        # download all parts of features
+        for feature_file_name in DOWNLOAD_FEATURES:
+            FileUtil.download_data("data/{}.csv".format(feature_file_name), "{}.csv".format(feature_file_name))
+
+        # merge them
+        # todo: merge all files to FEATURE_ALL
+
+        # rename to FEATURE_ALL.csv
+        # todo: temp soluation
+        os.system("cp feature_basic.csv feature_all.csv")
 
     def _update_feature_table_columns(self):
         """

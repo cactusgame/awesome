@@ -74,6 +74,18 @@ You have to push the docker image first, then create it in k8s.
 kubectl --context=training-stage create -f kube/training-pod.yaml
 ```
 
+## Model Analysis
+download the model for analysis  
+```
+coscmd -b peng-1256590953 download -r models_training/prebuild_v2/1559321785 /tmp/analysis/
+```
+
+launch tensorboard for analysis
+```
+tensorboard --logdir /tmp/analysis/1559321785/
+```
+
+
 
 ## Test result
 #### prebuild_v1: LinearClassifier
@@ -84,7 +96,7 @@ features: time,share_id,close0-20
 result  :{'loss': 7.8904605, 'accuracy_baseline': 0.5008125, 'global_step': 1000000, 'recall': 0.740297, 'auc': 0.83925486, 'prediction/mean': 0.5027409, 'precision': 0.76670545, 'label/mean': 0.5008125, 'average_loss': 0.49315378, 'auc_precision_recall': 0.8436985, 'accuracy': 0.757125}
 tip: I should not use feature `time`, because different shares in the same `time` has the same trend
 
-#### prebuild_v2: DNNClassifier with Tensorboard
+#### prebuild_v2: DNNClassifier
 features: share_id,close0-20
 result: {'loss': 10.751576, 'accuracy_baseline': 0.5085625, 'global_step': 1000000, 'recall': 0.5825243, 'auc': 0.61233175, 'prediction/mean': 0.505836, 'precision': 0.5855466, 'label/mean': 0.5085625, 'average_loss': 0.6719735, 'auc_precision_recall': 0.62195647, 'accuracy': 0.578}
 
@@ -93,8 +105,3 @@ specific 2 classes and change the hidden layer         hidden_units = [256, 128,
 
 {'loss': 10.645561, 'accuracy_baseline': 0.5015, 'global_step': 1000000, 'recall': 0.6064307, 'auc': 0.63192403, 'prediction/mean': 0.5171307, 'precision': 0.58443433, 'label/mean': 0.5015, 'average_loss': 0.6653476, 'auc_precision_recall': 0.6384548, 'accuracy': 0.586375}
 
-
-## TODO list
-- tensor board
-- model anaylis
-- end to end

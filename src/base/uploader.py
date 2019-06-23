@@ -9,9 +9,12 @@ class Uploader:
 
     @staticmethod
     def upload_model():
-        CosUtil.upload_dir(cfg.TARGET_MODEL_DIR, cfg.COS_MODEL_DIR)
+        if cfg.upload_model:
+            CosUtil.upload_dir(cfg.TARGET_MODEL_DIR, cfg.COS_MODEL_DIR)
 
-        Uploader.upload_training_related()
+            Uploader.upload_training_related()
+        else:
+            print("doesn't need to upload model")
 
     @staticmethod
     def upload_training_related():

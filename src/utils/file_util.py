@@ -37,7 +37,7 @@ class FileUtil():
         """
         filename = (os.path.basename(file_abs_path))
         cmd = "coscmd -b peng-1256590953 upload " + file_abs_path + " data/" + filename
-        # cmd = "cp awesome.db /tmp/featuredb"  # this will persist on Node disk
+        # cmd = "cp xxx /tmp/xxx"  # this will persist on Node disk
         status, output = commands.getstatusoutput(cmd)
         print(str(status) + " " + str(output))
 
@@ -46,8 +46,8 @@ class FileUtil():
     def download_data(filepath_in_cos,local_file_name):
         """
         download a file from COS
-        :param filepath_in_cos:  /seedrec/test/data/awesome.db
-        :param local_file_name:  awesome.db
+        :param filepath_in_cos:
+        :param local_file_name:
         :return:
         """
         local_path = os.path.abspath(local_file_name)

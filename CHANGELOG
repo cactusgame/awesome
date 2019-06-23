@@ -1,4 +1,14 @@
 project log:
+TODO list
+- predict or serve
+- tensor board
+- more features
+- model analysis
+- end to end
+
+2019-06-23:
+- refactor to support different feature data source
+
 2019-05-31:
 - upload the exported models to cos
 - upload tfevents file and checkpoint, TF transform Graph to cos
