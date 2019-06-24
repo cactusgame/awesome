@@ -1,5 +1,5 @@
 class EConfig:
-    DEBUG = True
+    DEBUG = False
 
     def __init__(self):
         pass

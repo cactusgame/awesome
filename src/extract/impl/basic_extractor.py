@@ -39,15 +39,6 @@ class BasicExtractor:
         self.sdk.close()
 
     def extract_one_share(self, share_id, start_date, end_date):
-        close_df = self._extract_one_share_n_days_close(share_id, start_date, end_date)
-        assert close_df is not None, "share_id = {} close_df is None".format(share_id)
-
-        ror_df = self._extract_one_share_n_days_ror(share_id, start_date, end_date)
-        assert ror_df is not None, "share_id = {} ror_df is None".format(share_id)
-
-        self._merge_data_to_commit(close_df, ror_df)
-
-    def _extract_one_share_n_days_close(self, share_id, start_date, end_date):
         """
         :param share_id:
         :param start_date:
@@ -56,6 +47,19 @@ class BasicExtractor:
         """
         bar_df = ts.pro_bar(pro_api=context.tushare, ts_code=share_id, start_date=start_date,
                             end_date=end_date, adj='qfq')
+
+        close_df = self._extract_one_share_n_days_close(bar_df, share_id)
+        assert close_df is not None, "share_id = {} close_df is None".format(share_id)
+
+        vol_df = self._extract_one_share_n_days_vol(bar_df, share_id)
+        assert vol_df is not None, "share_id = {} vol_df is None".format(share_id)
+
+        ror_df = self._extract_one_share_n_days_ror(bar_df, share_id)
+        assert ror_df is not None, "share_id = {} ror_df is None".format(share_id)
+
+        self._merge_data_to_commit(close_df, vol_df, ror_df)
+
+    def _extract_one_share_n_days_close(self, bar_df, share_id):
         close_s = bar_df['close']
         # print(close_s)
         close_list = close_s.tolist()
@@ -83,9 +87,26 @@ class BasicExtractor:
                     [str(date_list[index]), str(share_id)] + preprocessing.scale(close_list[index:index + n]).tolist())
         return pd.DataFrame(columns=keys, data=values)
 
-    def _extract_one_share_n_days_ror(self, share_id, start_date, end_date):
-        bar_df = ts.pro_bar(pro_api=context.tushare, ts_code=share_id, start_date=start_date,
-                            end_date=end_date, adj='qfq')
+    def _extract_one_share_n_days_vol(self, bar_df, share_id):
+        vol_s = bar_df['vol']
+        # print(close_s)
+        vol_list = vol_s.tolist()
+        date_list = vol_s.index.tolist()
+        log.info("[extractor] share_id= {}. there are {} rows of volume".format(share_id, len(vol_list)))
+
+        # this part is the same as _extract_one_share_n_days_close
+        keys, values = [], []
+        n = feature_definition_config["close_n_days_before"]
+        keys = keys + ["time", "share_id"]
+        keys = keys + ["volume_b" + str(i) for i in range(n)]
+
+        for index in range(len(vol_list)):
+            if len(vol_list[index:index + n]) == n:  # else: not enough (N) data, so drop it.
+                values.append(
+                    [str(date_list[index]), str(share_id)] + preprocessing.scale(vol_list[index:index + n]).tolist())
+        return pd.DataFrame(columns=keys, data=values)
+
+    def _extract_one_share_n_days_ror(self, bar_df, share_id):
         # reverse the original data frame, so that it make us easy to calculate the RoR (return of rate)
         bar_df = bar_df.iloc[::-1]
         close_s = bar_df['close']
@@ -114,12 +135,14 @@ class BasicExtractor:
 
         return pd.DataFrame(columns=keys, data=values)
 
-    def _merge_data_to_commit(self, close_df, ror_df):
-        if close_df is None or ror_df is None:
+    def _merge_data_to_commit(self, close_df, vol_df,  ror_df):
+        if close_df is None or ror_df is None or vol_df is None:
             return
 
-        result_df = pd.merge(close_df, ror_df, on=["time", "share_id"])
+        step1_df = pd.merge(close_df, vol_df, on=["time", "share_id"])
+        result_df = pd.merge(step1_df, ror_df, on=["time", "share_id"])
 
+        # todo: adjust the orders of the columns?
         for index, row in result_df.iterrows():
             self.sdk.save(row.index.tolist(), row.values.tolist())
         self.sdk.commit()
