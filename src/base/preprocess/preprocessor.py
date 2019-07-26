@@ -204,11 +204,10 @@ class Preprocessor:
         pipeline = beam.Pipeline(runner=DirectRunner())
 
         with beam_impl.Context(temp_dir=tempfile.mkdtemp()):
-            # todo: I MUST only use train data (or percentage of train data) to build the graph
             # if you add the eval set to generate the GRAPH, it will affect eval result
             raw_train_data = (
                     pipeline
-                    | 'ReadTrainDataFile' >> textio.ReadFromText('data/features' + '*' + 'shard' + '*',
+                    | 'ReadTrainDataFile' >> textio.ReadFromText('data/features.csv.train.shard*',
                                                                  skip_header_lines=0)
                     | 'DecodeTrainDataCSV' >> MapAndFilterErrors(
                 tft_coders.CsvCoder(self.data_formatter.get_features_and_targets(),
@@ -262,7 +261,7 @@ class Preprocessor:
             results.append(subprocess.Popen(call))
 
             # I don't know why it must sleep a while. otherwise, the subprocess will be skipped.
-            time.sleep(5)
+            time.sleep(30)
 
             if (i + 1) % num_proc == 0:
                 # block exec after

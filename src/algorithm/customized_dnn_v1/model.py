@@ -25,10 +25,40 @@ class Model:
 
             feature_columns = self.create_feature_columns(tf_transform_output)
 
+            fc_close = [e for e in feature_columns if ("close_" in e.name)]
+            fc_volume = [e for e in feature_columns if ("volume_" in e.name)]
+            fc_other = [e for e in feature_columns if ("volume_" not in e.name and "close_" not in e.name)]
+
+            input_layer_close = tf.feature_column.input_layer(features=features, feature_columns=fc_close)
+            input_layer_volume = tf.feature_column.input_layer(features=features, feature_columns=fc_volume)
+            input_layer_other = tf.feature_column.input_layer(features=features, feature_columns=fc_other)
+
+            net = tf.concat([input_layer_close, input_layer_volume, input_layer_other], axis=1)
+
             # Create three fully connected layers.
-            net = tf.feature_column.input_layer(features, feature_columns)
+            # net = tf.feature_column.input_layer(features, feature_columns)
+            # for units in model_params['hidden_units']:
+            #     net = tf.layers.dense(net, units=units, activation=tf.nn.relu)
+
+            # --------------------------------------
+            # Network definition: shared dense stack
+            # --------------------------------------
+            index = 1
             for units in model_params['hidden_units']:
-                net = tf.layers.dense(net, units=units, activation=tf.nn.relu)
+                a_h1 = tf.layers.Dense(
+                    name="dense{}_{}".format(index, units),
+                    units=units,
+                    activation=None,
+                    kernel_initializer=tf.glorot_normal_initializer(),
+                    bias_initializer=tf.zeros_initializer()
+                )(net)
+                a_h1_bn = tf.layers.batch_normalization(a_h1, training=(mode == tf.estimator.ModeKeys.TRAIN))
+                a_h1_act = tf.nn.relu(a_h1_bn)
+                a_h1_do = tf.layers.dropout(
+                    inputs=a_h1_act,
+                    rate=0.5,
+                    training=(mode == tf.estimator.ModeKeys.TRAIN))
+                index += 1
 
             # Compute logits (1 per class).
             logits = tf.layers.dense(net, model_params['n_classes'], activation=None)

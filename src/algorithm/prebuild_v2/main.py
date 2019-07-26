@@ -16,11 +16,12 @@ from src.base.env import Env
 @click.option("--train_steps", type=int)
 @click.option("--download_feature_db", type=bool)
 @click.option("--do_preprocessing", type=bool)
-def main(algo_id=None, train_steps=None, download_feature_db=None, do_preprocessing=None):
+@click.option("--upload_model", type=bool)
+def main(algo_id=None, train_steps=None, download_feature_db=None, do_preprocessing=None, upload_model=None):
     try:
         _start = time.time()
 
-        cfg.load(Config(algo_id, train_steps, download_feature_db, do_preprocessing))
+        cfg.load(Config(algo_id, train_steps, download_feature_db, do_preprocessing, upload_model))
 
         cfg.cls_data_formatter = os.path.normpath(os.path.join(os.path.dirname(__file__), 'data_formatter.py'))
         cfg.cls_coder = os.path.normpath(os.path.join(os.path.dirname(__file__), 'coder.py'))

@@ -42,6 +42,28 @@ class DataFormatter:
         self.FEATURES.append('close_b19')
         self.FEATURES.append('close_b20')
 
+        self.FEATURES.append('volume_b0')
+        self.FEATURES.append('volume_b1')
+        self.FEATURES.append('volume_b2')
+        self.FEATURES.append('volume_b3')
+        self.FEATURES.append('volume_b4')
+        self.FEATURES.append('volume_b5')
+        self.FEATURES.append('volume_b6')
+        self.FEATURES.append('volume_b7')
+        self.FEATURES.append('volume_b8')
+        self.FEATURES.append('volume_b9')
+        self.FEATURES.append('volume_b10')
+        self.FEATURES.append('volume_b11')
+        self.FEATURES.append('volume_b12')
+        self.FEATURES.append('volume_b13')
+        self.FEATURES.append('volume_b14')
+        self.FEATURES.append('volume_b15')
+        self.FEATURES.append('volume_b16')
+        self.FEATURES.append('volume_b17')
+        self.FEATURES.append('volume_b18')
+        self.FEATURES.append('volume_b19')
+        self.FEATURES.append('volume_b20')
+
         self.TARGETS = []
         self.TARGETS.append(Target.ROR_20_DAYS_BOOL)
 
