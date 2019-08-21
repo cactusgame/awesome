@@ -63,13 +63,6 @@ class FeatureSDKCsvImpl:
         for feature_file_name in DOWNLOAD_FEATURES:
             FileUtil.download_data("data/{}.csv".format(feature_file_name), "{}.csv".format(feature_file_name))
 
-        # merge them
-        # todo: merge all files to FEATURE_ALL
-
-        # rename to FEATURE_ALL.csv
-        # todo: temp soluation
-        os.system("cp feature_basic.csv feature_all.csv")
-
     def _update_feature_table_columns(self):
         """
         update the feature table in feature.db

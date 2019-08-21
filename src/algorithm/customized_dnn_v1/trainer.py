@@ -31,18 +31,18 @@ class Trainer:
         make_serving_input_fn = self.model.make_serving_input_fn(tf_transform_output)
 
         run_config = tf.estimator.RunConfig().replace(
+            save_checkpoints_secs=cfg.SAVE_MODEL_SECONDS,
             keep_checkpoint_max=3,
             session_config=tf.ConfigProto(device_count={'GPU': 0}))
 
-        model_params = {
-            'hidden_units': [256, 128, 64],
-            'n_classes': 2,
-        }
-        model_fn = self.model.make_model_fn(tf_transform_output, model_params)
+        model_fn = self.model.make_model_fn(tf_transform_output)
         estimator = tf.estimator.Estimator(model_fn=model_fn, config=run_config, model_dir=cfg.TARGET_DIR)
-        estimator.train(train_input_fn, steps=cfg.TRAIN_MAX_STEPS)
-        eval_evalset_result = estimator.evaluate(eval_input_fn, steps=cfg.EVAL_STEPS, name='eval')
-        print eval_evalset_result
+
+        eval_spec = tf.estimator.EvalSpec(input_fn=eval_input_fn, steps=cfg.EVAL_STEPS,
+                                          name='evaluation', start_delay_secs=5, throttle_secs=cfg.EVAL_SECONDS)
+        train_spec = tf.estimator.TrainSpec(input_fn=train_input_fn, max_steps=cfg.TRAIN_MAX_STEPS)
+
+        tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
 
         estimator.export_savedmodel(cfg.TARGET_MODEL_DIR, make_serving_input_fn, strip_default_attrs=True)
 

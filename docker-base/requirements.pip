@@ -78,7 +78,7 @@ pluggy==0.7.1
 ply==3.8
 pox==0.2.4
 ppft==1.6.4.8
-prettytable==0.7
+prettytable>=0.7.1
 prometheus-client==0.3.0
 prompt-toolkit==1.0.15
 proto-google-cloud-datastore-v1==0.90.4

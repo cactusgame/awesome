@@ -15,10 +15,10 @@ class Model:
     def __make_target(self, transformed_features):
         """ Target/reward definition """
 
-        transformed_target0 = transformed_features[Target.ROR_20_DAYS_BOOL]
+        transformed_target0 = transformed_features[Target.ROR_1_DAYS_BEYOND_0_001_BOOL]
         return transformed_target0
 
-    def make_model_fn(self, tf_transform_output, model_params):
+    def make_model_fn(self, tf_transform_output):
 
         def model_fn(features, labels, mode):
             """DNN with three hidden layers and learning_rate=0.1."""
@@ -33,35 +33,41 @@ class Model:
             input_layer_volume = tf.feature_column.input_layer(features=features, feature_columns=fc_volume)
             input_layer_other = tf.feature_column.input_layer(features=features, feature_columns=fc_other)
 
-            net = tf.concat([input_layer_close, input_layer_volume, input_layer_other], axis=1)
-
-            # Create three fully connected layers.
-            # net = tf.feature_column.input_layer(features, feature_columns)
-            # for units in model_params['hidden_units']:
-            #     net = tf.layers.dense(net, units=units, activation=tf.nn.relu)
+            input_layer = tf.concat([input_layer_close, input_layer_volume, input_layer_other], axis=1)
 
             # --------------------------------------
             # Network definition: shared dense stack
             # --------------------------------------
-            index = 1
-            for units in model_params['hidden_units']:
-                a_h1 = tf.layers.Dense(
-                    name="dense{}_{}".format(index, units),
-                    units=units,
-                    activation=None,
-                    kernel_initializer=tf.glorot_normal_initializer(),
-                    bias_initializer=tf.zeros_initializer()
-                )(net)
-                a_h1_bn = tf.layers.batch_normalization(a_h1, training=(mode == tf.estimator.ModeKeys.TRAIN))
-                a_h1_act = tf.nn.relu(a_h1_bn)
-                a_h1_do = tf.layers.dropout(
-                    inputs=a_h1_act,
-                    rate=0.5,
-                    training=(mode == tf.estimator.ModeKeys.TRAIN))
-                index += 1
+            a_h1 = tf.layers.Dense(
+                name="dense{}_{}".format(1, 512),
+                units=512,
+                activation=None,
+                kernel_initializer=tf.glorot_normal_initializer(),
+                bias_initializer=tf.zeros_initializer()
+            )(input_layer)
+            a_h1_bn = tf.layers.batch_normalization(a_h1, training=(mode == tf.estimator.ModeKeys.TRAIN))
+            a_h1_act = tf.nn.relu(a_h1_bn)
+            a_h1_do = tf.layers.dropout(
+                inputs=a_h1_act,
+                rate=0.0,
+                training=(mode == tf.estimator.ModeKeys.TRAIN))
+
+            a_h2 = tf.layers.Dense(
+                name="dense{}_{}".format(2, 64),
+                units=64,
+                activation=None,
+                kernel_initializer=tf.glorot_normal_initializer(),
+                bias_initializer=tf.zeros_initializer()
+            )(a_h1_do)
+            a_h2_bn = tf.layers.batch_normalization(a_h2, training=(mode == tf.estimator.ModeKeys.TRAIN))
+            a_h2_act = tf.nn.relu(a_h2_bn)
+            a_h2_do = tf.layers.dropout(
+                inputs=a_h2_act,
+                rate=0.0,
+                training=(mode == tf.estimator.ModeKeys.TRAIN))
 
             # Compute logits (1 per class).
-            logits = tf.layers.dense(net, model_params['n_classes'], activation=None)
+            logits = tf.layers.dense(a_h2_do, 2, activation=None)
 
             # Compute predictions.
             predicted_classes = tf.argmax(logits, 1)
@@ -94,11 +100,10 @@ class Model:
                 return tf.estimator.EstimatorSpec(mode, loss=loss, eval_metric_ops=metrics)
 
             # Create training op.
-            assert mode == tf.estimator.ModeKeys.TRAIN
-
-            optimizer = tf.train.AdagradOptimizer(learning_rate=0.1)
-            train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
-            return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_op)
+            if mode == tf.estimator.ModeKeys.TRAIN:
+                optimizer = tf.train.AdagradOptimizer(learning_rate=0.1)
+                train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
+                return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_op)
 
         return model_fn
 

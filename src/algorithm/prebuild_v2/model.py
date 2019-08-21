@@ -16,7 +16,7 @@ class Model:
     def __make_target(self, transformed_features):
         """ Target/reward definition """
 
-        transformed_target0 = transformed_features[Target.ROR_20_DAYS_BOOL]
+        transformed_target0 = transformed_features[Target.ROR_1_DAYS_BEYOND_0_001_BOOL]
         return transformed_target0
 
     def make_training_input_fn(self, tf_transform_output, transformed_examples, batch_size):

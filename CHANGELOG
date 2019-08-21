@@ -1,10 +1,7 @@
 project log:
 TODO list
-- predict or serve
-- tensor board
-- more features
-- model analysis
-- end to end
+- tensor board to show acc and loss (training/val)
+- use CNN or RNN model
 
 2019-06-23:
 - refactor to support different feature data source

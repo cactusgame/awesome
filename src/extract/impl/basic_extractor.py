@@ -119,23 +119,24 @@ class BasicExtractor:
         # here, we calculate ror_5_days, ror_10_days ... we should use the max N in the loop.
         n = feature_definition_config["ror_n_days_after"]
         keys += ["time", "share_id"]
-        keys += ["ror_05_days", "ror_10_days", "ror_20_days", "ror_40_days", "ror_60_days"]
+        keys += ["ror_1_days", "ror_5_days", "ror_10_days", "ror_20_days", "ror_40_days", "ror_60_days"]
         try:
             for index in range(len(close_list)):
                 if len(close_list[index:index + n]) == n:  # else: not enough (N) data, so drop it.
+                    ror1 = round((close_list[index + 1] / close_list[index]) - 1, 4)
                     ror5 = round((close_list[index + 5] / close_list[index]) - 1, 4)
                     ror10 = round((close_list[index + 10] / close_list[index]) - 1, 4)
                     ror20 = round((close_list[index + 20] / close_list[index]) - 1, 4)
                     ror40 = round((close_list[index + 40] / close_list[index]) - 1, 4)
                     ror60 = round((close_list[index + 60] / close_list[index]) - 1, 4)
 
-                    values.append([str(date_list[index]), str(share_id), ror5, ror10, ror20, ror40, ror60])
+                    values.append([str(date_list[index]), str(share_id), ror1, ror5, ror10, ror20, ror40, ror60])
         except IndexError:
             log.info("share_id = {} calculate ror maybe complete ".format(share_id))
 
         return pd.DataFrame(columns=keys, data=values)
 
-    def _merge_data_to_commit(self, close_df, vol_df,  ror_df):
+    def _merge_data_to_commit(self, close_df, vol_df, ror_df):
         if close_df is None or ror_df is None or vol_df is None:
             return
 

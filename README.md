@@ -19,6 +19,7 @@ docker push ccr.ccs.tencentyun.com/prometheus/extractor-test-base:latest
 docker build -t ccr.ccs.tencentyun.com/prometheus/extractor-test:latest -f docker-extractor/Dockerfile .
 docker push ccr.ccs.tencentyun.com/prometheus/extractor-test:latest
 kubectl --context=training-stage create -f kube/extractor-pod.yaml
+kubectl --context=training-prod create -f kube/training-pod.yaml
 echo "extracting done"
 ```
 
@@ -59,6 +60,8 @@ The pipeline is split into several parts
 docker build -t ccr.ccs.tencentyun.com/prometheus/training-test:latest -f docker-training/Dockerfile .
 docker push ccr.ccs.tencentyun.com/prometheus/training-test:latest
 kubectl --context=training-stage create -f kube/training-pod.yaml
+kubectl --context=training-prod create -f kube/training-pod.yaml
+
 echo "training done"
 
 docker run -it ccr.ccs.tencentyun.com/prometheus/training-test:latest bash
@@ -105,3 +108,14 @@ specific 2 classes and change the hidden layer         hidden_units = [256, 128,
 
 {'loss': 10.645561, 'accuracy_baseline': 0.5015, 'global_step': 1000000, 'recall': 0.6064307, 'auc': 0.63192403, 'prediction/mean': 0.5171307, 'precision': 0.58443433, 'label/mean': 0.5015, 'average_loss': 0.6653476, 'auc_precision_recall': 0.6384548, 'accuracy': 0.586375}
 
+
+
+#### customized DNN
+net: shared dense stack + dropout=0.5
+INFO:tensorflow:Saving dict for global step 1000000: accuracy = 0.5325625, global_step = 1000000, loss = 0.6892759
+
+net: (512,64) shared dense stack + dropout=0.2
+{'loss': 0.71108305, 'global_step': 1000000, 'accuracy': 0.554125}
+
+conclusion:
+- it's easier to predict the next 1 day than the next 20 days when using the same feature(recent 20 days)

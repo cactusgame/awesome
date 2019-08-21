@@ -12,6 +12,7 @@ from src.context import log
 
 class Target:
     ROR_20_DAYS_BOOL = 'ror_20_days_bool'
+    ROR_1_DAYS_BEYOND_0_001_BOOL = 'ror_1_days_beyond_0_001_bool'
 
 
 class DataFormatter:
@@ -65,7 +66,7 @@ class DataFormatter:
         self.FEATURES.append('volume_b20')
 
         self.TARGETS = []
-        self.TARGETS.append(Target.ROR_20_DAYS_BOOL)
+        self.TARGETS.append(Target.ROR_1_DAYS_BEYOND_0_001_BOOL)
 
         # store the features by data type
         self.integer_features = []

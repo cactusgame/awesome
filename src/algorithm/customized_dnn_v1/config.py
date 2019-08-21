@@ -48,13 +48,19 @@ class Config:
     EVAL_TRAIN_SUBSAMPLE_FACTOR = 1
 
     # Train for `TRAIN_INC_STEPS` steps before evaluating the model.
-    TRAIN_INC_STEPS = 1 * 1000 * 1000
+    TRAIN_INC_STEPS = 5 * 1000 * 1000
     # Train for `TRAIN_MAX_STEPS` steps max, then stop.
-    TRAIN_MAX_STEPS = 1 * 1000 * 1000
+    TRAIN_MAX_STEPS = 5 * 1000 * 1000
     # Early stopping criterium, even if `TRAIN_MAX_STEPS` is not reached.
     STOP_AFTER_WORSE_EVALS_NUM = 5
 
     EVAL_STEPS = 1000
+
+    # eval the model every N seconds
+    EVAL_SECONDS = 120
+
+    # save the model every N seconds
+    SAVE_MODEL_SECONDS = 120
 
     # Shuffle uses a running buffer of `shuffle_buffer_size`, so only items within each buffer
     # of `shuffle_buffer_size` are shuffled. Best to make sure the dataset is shuffled beforehand.

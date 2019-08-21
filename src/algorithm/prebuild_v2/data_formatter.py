@@ -5,12 +5,14 @@ from tensorflow_transform.tf_metadata import dataset_schema
 
 from src.extract.feature_definition import feature_extractor_definition
 from src.extract.feature_definition import FORMAT_NUMBER
+from src.extract.feature_definition import FORMAT_INTEGER
 from src.extract.feature_definition import FORMAT_VOCABULARY
 from src.context import log
 
 
 class Target:
     ROR_20_DAYS_BOOL = 'ror_20_days_bool'
+    ROR_1_DAYS_BEYOND_0_001_BOOL = 'ror_1_days_beyond_0_001_bool'
 
 
 class DataFormatter:
@@ -64,15 +66,19 @@ class DataFormatter:
         self.FEATURES.append('volume_b20')
 
         self.TARGETS = []
-        self.TARGETS.append(Target.ROR_20_DAYS_BOOL)
+        self.TARGETS.append(Target.ROR_1_DAYS_BEYOND_0_001_BOOL)
 
         # store the features by data type
+        self.integer_features = []
         self.number_features = []
         self.vocabulary_features = []
         for key in self.FEATURES:
-            if feature_extractor_definition[key][3] == FORMAT_NUMBER:
+            feature_key_type = feature_extractor_definition[key][3]
+            if feature_key_type == FORMAT_NUMBER:
                 self.number_features.append(key)
-            elif feature_extractor_definition[key][3] == FORMAT_VOCABULARY:
+            elif feature_key_type == FORMAT_INTEGER:
+                self.integer_features.append(key)
+            elif feature_key_type == FORMAT_VOCABULARY:
                 self.vocabulary_features.append(key)
             else:
                 raise Exception("unsupported feature types in TFT")

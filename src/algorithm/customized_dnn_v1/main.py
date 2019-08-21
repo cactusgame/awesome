@@ -36,36 +36,6 @@ def main(algo_id=None, train_steps=None, download_feature_db=None, do_preprocess
 
         Uploader.upload_model()
 
-        # import tensorflow as tf
-        # saved_model_dir = "gen/model/1559483504"
-        #
-        # predictor_fn = tf.contrib.predictor.from_saved_model(
-        #     export_dir=saved_model_dir,
-        #     signature_def_key="default_signature_key"
-        # )
-        # output = predictor_fn({'share_id': "000001.SZ",
-        #                        "close_b20":-1.3997,
-        #                        "close_b11":-1.7812,
-        #                        "close_b10":-0.8656,
-        #                        "close_b13":-1.3043,
-        #                        "close_b12":-1.1136,
-        #                        "close_b15":-1.3043,
-        #                        "close_b14":-1.3043,
-        #                        "close_b17":-0.7702,
-        #                        "close_b16":0.4314,
-        #                        "close_b19":0.6413,
-        #                        "close_b18":0.832,
-        #                        "close_b1":0.7557,
-        #                        "close_b0":0.9655,
-        #                        "close_b3":0.6603,
-        #                        "close_b2":0.5268,
-        #                        "close_b5":1.1181,
-        #                        "close_b4":0.5459,
-        #                        "close_b7":0.4696,
-        #                        "close_b6":0.7939,
-        #                        "close_b9":0.8702,
-        #                        "close_b8":1.2326})
-        # print(output)
         log.info("[total] use {} seconds totally".format(time.time() - _start))
     except Exception as e:
         import traceback

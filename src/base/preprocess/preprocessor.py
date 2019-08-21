@@ -47,6 +47,9 @@ class Preprocessor:
         if cfg.download_feature_db:
             self.download_features_db()
 
+        # merge downloaded files
+        self.merge_features()
+
         print("start to select features")
         self.select_features()
 
@@ -79,6 +82,14 @@ class Preprocessor:
         """
         FeatureSDK.download()
 
+    def merge_features(self):
+        # merge them
+        # todo: merge all files to FEATURE_ALL
+
+        # rename to FEATURE_ALL.csv
+        # todo: temp soluation
+        os.system("cp feature_basic.csv feature_all.csv")
+
     def select_features(self):
         """
         according to `DataFormatter`, select features used in the algorithm and add target
@@ -89,12 +100,13 @@ class Preprocessor:
         os.system("mkdir data")
         coder = import_from_uri(cfg.cls_coder).Coder(self.data_formatter)
 
-        output = open(cfg.exp_file_path, 'w')
-        writer = csv.DictWriter(output, fieldnames=self.data_formatter.get_features_and_targets(), delimiter=',')
-
-        # for testing, the local FEATURE_ALL only has 1000 rows
+        # READ from feature_all
+        # TODO: For testing, you should merge a file named FEATURE_ALL.csv manually
         input_file = open("{}.csv".format(FEATURE_ALL), 'rb')
         reader = csv.DictReader(input_file, delimiter=',')
+
+        output = open(cfg.exp_file_path, 'w')
+        writer = csv.DictWriter(output, fieldnames=self.data_formatter.get_features_and_targets(), delimiter=',')
 
         writer.writeheader()
         for row in reader:
