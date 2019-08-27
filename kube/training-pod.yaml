@@ -13,16 +13,16 @@ spec:
     image: ccr.ccs.tencentyun.com/prometheus/training-test:latest
     imagePullPolicy: Always
     command: ["/bin/sh"]
-    args: ["-c","sh run_training.sh --algo_id customized_dnn_v1 --download_feature_db true --do_preprocessing true --upload_model true"]
+    args: ["-c","sh run_training.sh --algo_id rnn_v1 --download_feature_db true --do_preprocessing true --upload_model true"]
     ports:
     - containerPort: 8080
     resources:
       requests:
         cpu: 7000m
-        memory: 34Gi
+        memory: 54Gi
       limits:
         cpu: 7000m
-        memory: 34Gi
+        memory: 54Gi
     volumeMounts:
       - name: featuredb
         mountPath: /tmp/featuredb

@@ -26,10 +26,10 @@ class Model:
 
             # feature_columns = self.create_feature_columns(tf_transform_output)
             # ????? how to generate from N input to 1 output
-            inputs = tf.split(features["closes"], 4, 1)
+            inputs = tf.split(features["closes"], 21, 1)
             # 1. configure the RNN
             lstm_cell = rnn.BasicLSTMCell(
-                num_units=1,
+                num_units=4,
                 forget_bias=1.0,
                 activation=tf.nn.tanh
             )
@@ -37,16 +37,8 @@ class Model:
 
             # slice to keep only the last cell of the RNN
             outputs = outputs[-1]
-            print('last outputs={}'.format(outputs))
-
-            # output is result of linear activation of last layer of RNN
-            #     weight = tf.Variable(tf.random_normal([LSTM_SIZE, N_OUTPUTS]))
-            #     bias = tf.Variable(tf.random_normal([N_OUTPUTS]))
-            #     predictions = tf.matmul(outputs, weight) + bias
 
             predictions = tf.layers.dense(inputs=outputs, units=1, activation=None)
-
-            # predictions = tf.cast(predictions,dtype=tf.int64)
 
             predict_output = {'values': predictions}
 
@@ -70,10 +62,14 @@ class Model:
             train_op = optimizer.minimize(
                 loss=loss, global_step=tf.train.get_global_step())
 
+            accuracy = tf.metrics.accuracy(labels=labels, predictions=predictions, name='acc_op')
+            tf.summary.scalar('accuracy', accuracy[1])  # for training
+
             # Calculate root mean squared error as additional eval metric
             eval_metric_ops = {
-                "rmse": tf.metrics.root_mean_squared_error(labels, predictions),
-                "mae": tf.metrics.mean_absolute_error(labels, predictions)
+                # "rmse": tf.metrics.root_mean_squared_error(labels, predictions),
+                # "mae": tf.metrics.mean_absolute_error(labels, predictions),
+                "accuracy": accuracy
             }
 
             # Provide an estimator spec for `ModeKeys.EVAL` and `ModeKeys.TRAIN` modes.
@@ -82,45 +78,6 @@ class Model:
                                                         train_op=train_op,
                                                         eval_metric_ops=eval_metric_ops)
             return estimator_spec
-
-            # # Compute logits (1 per class).
-            # logits = tf.layers.dense(a_h1_do, 2, activation=None)
-            #
-            # # Compute predictions.
-            # predicted_classes = tf.argmax(logits, 1)
-            # if mode == tf.estimator.ModeKeys.PREDICT:
-            #     predictions = {
-            #         'class_ids': predicted_classes[:, tf.newaxis],
-            #         'probabilities': tf.nn.softmax(logits),
-            #         'logits': logits,
-            #     }
-            #     default_export_outputs = {
-            #         "default_signature_key": tf.estimator.export.PredictOutput({"output": predicted_classes}),
-            #     }
-            #     export_outputs = dict()
-            #     export_outputs.update(default_export_outputs)
-            #
-            #     return tf.estimator.EstimatorSpec(mode, predictions=predictions, export_outputs=export_outputs)
-            #
-            # # Compute loss.
-            # loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
-            #
-            # # Compute evaluation metrics.
-            # accuracy = tf.metrics.accuracy(labels=labels,
-            #                                predictions=predicted_classes,
-            #                                name='acc_op')
-            # metrics = {'accuracy': accuracy}
-            # tf.summary.scalar('accuracy', accuracy[1])
-            #
-            # # todo: add `lose`
-            # if mode == tf.estimator.ModeKeys.EVAL:
-            #     return tf.estimator.EstimatorSpec(mode, loss=loss, eval_metric_ops=metrics)
-            #
-            # # Create training op.
-            # if mode == tf.estimator.ModeKeys.TRAIN:
-            #     optimizer = tf.train.AdagradOptimizer(learning_rate=0.1)
-            #     train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
-            #     return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_op)
 
         return model_fn
 
@@ -138,6 +95,23 @@ class Model:
                                              (k in self.data_formatter.FEATURES)}
             # todo: try RNN List features
             tensors = []
+            tensors.append(transformed_features["close_b20"])
+            tensors.append(transformed_features["close_b19"])
+            tensors.append(transformed_features["close_b18"])
+            tensors.append(transformed_features["close_b17"])
+            tensors.append(transformed_features["close_b16"])
+            tensors.append(transformed_features["close_b15"])
+            tensors.append(transformed_features["close_b14"])
+            tensors.append(transformed_features["close_b13"])
+            tensors.append(transformed_features["close_b12"])
+            tensors.append(transformed_features["close_b11"])
+            tensors.append(transformed_features["close_b10"])
+            tensors.append(transformed_features["close_b9"])
+            tensors.append(transformed_features["close_b8"])
+            tensors.append(transformed_features["close_b7"])
+            tensors.append(transformed_features["close_b6"])
+            tensors.append(transformed_features["close_b5"])
+            tensors.append(transformed_features["close_b4"])
             tensors.append(transformed_features["close_b3"])
             tensors.append(transformed_features["close_b2"])
             tensors.append(transformed_features["close_b1"])
@@ -198,16 +172,32 @@ class Model:
 
             transformed_features = tf_transform_output.transform_raw_features(inputs)
 
-
             # todo: try RNN List features
             tensors = []
+            tensors.append(transformed_features["close_b20"])
+            tensors.append(transformed_features["close_b19"])
+            tensors.append(transformed_features["close_b18"])
+            tensors.append(transformed_features["close_b17"])
+            tensors.append(transformed_features["close_b16"])
+            tensors.append(transformed_features["close_b15"])
+            tensors.append(transformed_features["close_b14"])
+            tensors.append(transformed_features["close_b13"])
+            tensors.append(transformed_features["close_b12"])
+            tensors.append(transformed_features["close_b11"])
+            tensors.append(transformed_features["close_b10"])
+            tensors.append(transformed_features["close_b9"])
+            tensors.append(transformed_features["close_b8"])
+            tensors.append(transformed_features["close_b7"])
+            tensors.append(transformed_features["close_b6"])
+            tensors.append(transformed_features["close_b5"])
+            tensors.append(transformed_features["close_b4"])
             tensors.append(transformed_features["close_b3"])
             tensors.append(transformed_features["close_b2"])
             tensors.append(transformed_features["close_b1"])
             tensors.append(transformed_features["close_b0"])
 
             tensors_concat = tf.stack(tensors, axis=1)
-            return tf.estimator.export.ServingInputReceiver( {"closes": tensors_concat}, inputs_ext)
+            return tf.estimator.export.ServingInputReceiver({"closes": tensors_concat}, inputs_ext)
 
         return serving_input_fn
 
