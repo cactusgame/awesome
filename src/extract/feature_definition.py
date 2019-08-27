@@ -93,6 +93,7 @@ feature_extractor_definition["ror_60_days"] = ("float", "REAL", "tf.FixedLenFeat
 
 ### Infer
 # This type if infered from coder which is only exist in features or targets, we don't need to store it in db.
-feature_extractor_definition["ror_1_days_beyond_0_001_bool"] = ("int", "INT", "tf.FixedLenFeature", FORMAT_INTEGER, tf.int64, TYPE_INFER)
+# feature_extractor_definition["ror_1_days_beyond_0_001_bool"] = ("int", "INT", "tf.FixedLenFeature", FORMAT_INTEGER, tf.int64, TYPE_INFER)
+feature_extractor_definition["ror_1_days_beyond_0_001_bool"] = ("float", "INT", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_INFER)
 feature_extractor_definition["ror_20_days_bool"] = ("int", "INT", "tf.FixedLenFeature", FORMAT_INTEGER, tf.int64, TYPE_INFER)
 
