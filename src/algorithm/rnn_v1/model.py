@@ -7,6 +7,12 @@ from data_formatter import Target
 from src.context import log
 import tensorflow.contrib.rnn as rnn
 
+SEQUENCE_LENGTH = 21
+VALUES_FEATURE_NAME = ["closes"]
+forget_bias = 1.0
+hidden_units = [32, 4]
+TARGET_LABELS = [0, 1]
+
 
 class Model:
     def __init__(self):
@@ -14,70 +20,81 @@ class Model:
         self.CLASSIF_TARGETS = self.data_formatter.TARGETS
 
     def __make_target(self, transformed_features):
-        """ Target/reward definition """
-
         transformed_target0 = transformed_features[Target.ROR_1_DAYS_BEYOND_0_001_BOOL]
         return transformed_target0
 
     def make_model_fn(self, tf_transform_output):
 
         def model_fn(features, labels, mode):
-            """DNN with three hidden layers and learning_rate=0.1."""
+            inputs = tf.split(features["closes"], SEQUENCE_LENGTH, 1)
 
-            # feature_columns = self.create_feature_columns(tf_transform_output)
-            # ????? how to generate from N input to 1 output
-            inputs = tf.split(features["closes"], 21, 1)
-            # 1. configure the RNN
-            lstm_cell = rnn.BasicLSTMCell(
-                num_units=4,
-                forget_bias=1.0,
-                activation=tf.nn.tanh
-            )
-            outputs, _ = rnn.static_rnn(cell=lstm_cell, inputs=inputs, dtype=tf.float32)
-
-            # slice to keep only the last cell of the RNN
+            ## 1. configure the RNN
+            rnn_layers = [tf.nn.rnn_cell.LSTMCell(
+                num_units=size,
+                forget_bias=forget_bias,
+                activation=tf.nn.tanh) for size in hidden_units]
+            # create a RNN cell composed sequentially of a number of RNNCells
+            multi_rnn_cell = tf.nn.rnn_cell.MultiRNNCell(rnn_layers)
+            outputs, _ = tf.nn.static_rnn(cell=multi_rnn_cell,
+                                          inputs=inputs,
+                                          dtype=tf.float32)
             outputs = outputs[-1]
+            logits = tf.layers.dense(inputs=outputs,
+                                     units=len(TARGET_LABELS),
+                                     activation=None)
 
-            predictions = tf.layers.dense(inputs=outputs, units=1, activation=None)
-
-            predict_output = {'values': predictions}
+            probabilities = tf.nn.softmax(logits)
+            predicted_indices = tf.argmax(probabilities, 1)
 
             if mode == tf.estimator.ModeKeys.PREDICT:
+                # Convert predicted_indices back into strings
+                predictions = {
+                    'class': tf.gather(TARGET_LABELS, predicted_indices),
+                    'probabilities': probabilities
+                }
                 export_outputs = {
-                    'predictions': tf.estimator.export.PredictOutput(predict_output)
+                    'prediction': tf.estimator.export.PredictOutput(predictions)
                 }
 
-                return tf.estimator.EstimatorSpec(
-                    mode=mode,
-                    predictions=predict_output,
-                    export_outputs=export_outputs)
+                # Provide an estimator spec for `ModeKeys.PREDICT` modes.
+                return tf.estimator.EstimatorSpec(mode,
+                                                  predictions=predictions,
+                                                  export_outputs=export_outputs)
 
-                # Calculate loss using mean squared error
-            loss = tf.losses.mean_squared_error(labels, predictions)
+            acc = tf.metrics.accuracy(labels, predicted_indices, name='acc_op') # why the name acc_op?
 
-            # Create Optimiser
-            optimizer = tf.train.AdamOptimizer(learning_rate=0.1)
+            # Calculate loss using softmax cross entropy
+            loss = tf.reduce_mean(
+                tf.nn.sparse_softmax_cross_entropy_with_logits(
+                    logits=logits, labels=labels))
 
-            # Create training operation
-            train_op = optimizer.minimize(
-                loss=loss, global_step=tf.train.get_global_step())
+            tf.summary.scalar('loss', loss)
+            tf.summary.scalar('accuracy', acc[1])
 
-            accuracy = tf.metrics.accuracy(labels=labels, predictions=predictions, name='acc_op')
-            tf.summary.scalar('accuracy', accuracy[1])  # for training
+            if mode == tf.estimator.ModeKeys.TRAIN:
+                optimizer = tf.train.AdamOptimizer()
+                train_op = optimizer.minimize(
+                    loss=loss, global_step=tf.train.get_global_step())
+                return tf.estimator.EstimatorSpec(mode=mode,
+                                                  loss=loss,
+                                                  train_op=train_op)
 
-            # Calculate root mean squared error as additional eval metric
-            eval_metric_ops = {
-                # "rmse": tf.metrics.root_mean_squared_error(labels, predictions),
-                # "mae": tf.metrics.mean_absolute_error(labels, predictions),
-                "accuracy": accuracy
-            }
-
-            # Provide an estimator spec for `ModeKeys.EVAL` and `ModeKeys.TRAIN` modes.
-            estimator_spec = tf.estimator.EstimatorSpec(mode=mode,
-                                                        loss=loss,
-                                                        train_op=train_op,
-                                                        eval_metric_ops=eval_metric_ops)
-            return estimator_spec
+            if mode == tf.estimator.ModeKeys.EVAL:
+                # Return accuracy and area under ROC curve metrics
+                labels_one_hot = tf.one_hot(
+                    labels,
+                    depth=len(TARGET_LABELS),
+                    on_value=True,
+                    off_value=False,
+                    dtype=tf.bool
+                )
+                eval_metric_ops = {
+                    'accuracy': acc,
+                    'auroc': tf.metrics.auc(labels_one_hot, probabilities)
+                }
+                return tf.estimator.EstimatorSpec(mode,
+                                                  loss=loss,
+                                                  eval_metric_ops=eval_metric_ops)
 
         return model_fn
 
@@ -121,8 +138,8 @@ class Model:
             target = tf.expand_dims(transformed_target, -1)
 
             # features (32,4)
-            # target (32,1)
-            return {"closes": tensors_concat}, target
+            # target (32,1) -> target(32,)
+            return {"closes": tensors_concat}, tf.squeeze(target)  # target remove dim1
 
         def input_fn():
             """ Estimator input function for train/eval """

@@ -34,6 +34,14 @@ kubectl --context=training-stage create -f kube/extractor-pod.yaml
 docker run -it ccr.ccs.tencentyun.com/prometheus/extractor-test:latest bash
 ```
 
+##### get model training run tfevents
+```
+coscmd -b peng-1256590953 download -rs models_training/rnn_v1/<model_version> /tmp/peng_model/
+
+tensorboard --logdir=/tmp/peng_model/
+```
+
+
 ##### export FEATURES in sqlite DB to .csv manually
 enter into sqlite (in project `root` folder)
 ```
