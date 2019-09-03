@@ -88,12 +88,12 @@ kubectl --context=training-stage create -f kube/training-pod.yaml
 ## Model Analysis
 download the model for analysis  
 ```
-coscmd -b peng-1256590953 download -r models_training/prebuild_v2/1559321785 /tmp/analysis/
+coscmd -b peng-1256590953 download -r models_training/rnn_v1/1567442811 /tmp/peng_model/
 ```
 
 launch tensorboard for analysis
 ```
-tensorboard --logdir /tmp/analysis/1559321785/
+tensorboard --logdir /tmp/peng_model/1567442811/
 ```
 
 

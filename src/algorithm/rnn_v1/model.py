@@ -10,7 +10,7 @@ import tensorflow.contrib.rnn as rnn
 SEQUENCE_LENGTH = 21
 VALUES_FEATURE_NAME = ["closes"]
 forget_bias = 1.0
-hidden_units = [32, 4]
+hidden_units = [64, 8]
 TARGET_LABELS = [0, 1]
 
 
@@ -28,20 +28,48 @@ class Model:
         def model_fn(features, labels, mode):
             inputs = tf.split(features["closes"], SEQUENCE_LENGTH, 1)
 
-            ## 1. configure the RNN
-            rnn_layers = [tf.nn.rnn_cell.LSTMCell(
-                num_units=size,
-                forget_bias=forget_bias,
-                activation=tf.nn.tanh) for size in hidden_units]
-            # create a RNN cell composed sequentially of a number of RNNCells
-            multi_rnn_cell = tf.nn.rnn_cell.MultiRNNCell(rnn_layers)
-            outputs, _ = tf.nn.static_rnn(cell=multi_rnn_cell,
-                                          inputs=inputs,
-                                          dtype=tf.float32)
-            outputs = outputs[-1]
-            logits = tf.layers.dense(inputs=outputs,
-                                     units=len(TARGET_LABELS),
-                                     activation=None)
+            def _add_conv_layers(inks, lengths):
+                """Adds convolution layers."""
+                convolved = inks
+                for i in range(len(params.num_conv)):
+                    convolved_input = convolved
+                    if params.batch_norm:
+                        convolved_input = tf.layers.batch_normalization(
+                            convolved_input,
+                            training=(mode == tf.estimator.ModeKeys.TRAIN))
+                    # Add dropout layer if enabled and not first convolution layer.
+                    if i > 0 and params.dropout:
+                        convolved_input = tf.layers.dropout(
+                            convolved_input,
+                            rate=params.dropout,
+                            training=(mode == tf.estimator.ModeKeys.TRAIN))
+                    convolved = tf.layers.conv1d(
+                        convolved_input,
+                        filters=params.num_conv[i],
+                        kernel_size=params.conv_len[i],
+                        activation=None,
+                        strides=1,
+                        padding="same",
+                        name="conv1d_%d" % i)
+                return convolved, lengths
+
+            def _add_rnn_layers():
+                rnn_layers = [tf.nn.rnn_cell.LSTMCell(
+                    num_units=size,
+                    forget_bias=forget_bias,
+                    activation=tf.nn.tanh) for size in hidden_units]
+                multi_rnn_cell = tf.nn.rnn_cell.MultiRNNCell(rnn_layers)
+                outputs, _ = tf.nn.static_rnn(cell=multi_rnn_cell,
+                                              inputs=inputs,
+                                              dtype=tf.float32)
+                outputs = outputs[-1]
+                return outputs
+
+            def _add_fc_layers(rnn_output):
+                return tf.layers.dense(inputs=rnn_output, units=len(TARGET_LABELS), activation=tf.nn.tanh)
+
+            rnn_output = _add_rnn_layers()
+            logits = _add_fc_layers(rnn_output)
 
             probabilities = tf.nn.softmax(logits)
             predicted_indices = tf.argmax(probabilities, 1)
@@ -61,7 +89,7 @@ class Model:
                                                   predictions=predictions,
                                                   export_outputs=export_outputs)
 
-            acc = tf.metrics.accuracy(labels, predicted_indices, name='acc_op') # why the name acc_op?
+            acc = tf.metrics.accuracy(labels, predicted_indices, name='acc_op')  # why the name acc_op?
 
             # Calculate loss using softmax cross entropy
             loss = tf.reduce_mean(

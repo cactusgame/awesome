@@ -41,23 +41,21 @@ class Config:
 
     # Config for training
     # when testing, I use a small value
-    TRAIN_BATCH_SIZE = 32
+    TRAIN_BATCH_SIZE = 64
     EVAL_BATCH_SIZE = 16
 
     # Eval train subsampling factor
     EVAL_TRAIN_SUBSAMPLE_FACTOR = 1
 
-    # Train for `TRAIN_INC_STEPS` steps before evaluating the model.
-    TRAIN_INC_STEPS = 5 * 1000 * 1000
     # Train for `TRAIN_MAX_STEPS` steps max, then stop.
-    TRAIN_MAX_STEPS = 5 * 1000 * 1000
+    TRAIN_MAX_STEPS = 1 * 1000 * 1000
     # Early stopping criterium, even if `TRAIN_MAX_STEPS` is not reached.
     STOP_AFTER_WORSE_EVALS_NUM = 5
 
     EVAL_STEPS = 1000
 
     # eval the model every N seconds
-    EVAL_SECONDS = 120
+    EVAL_SECONDS = 300
 
     # save the model every N seconds
     SAVE_MODEL_SECONDS = 120
@@ -111,5 +109,4 @@ class Config:
             self.upload_model = upload_model
 
         if train_steps is not None:
-            self.TRAIN_INC_STEPS = train_steps
             self.TRAIN_MAX_STEPS = train_steps
