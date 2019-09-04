@@ -26,9 +26,9 @@ class Model:
     def make_model_fn(self, tf_transform_output):
 
         def model_fn(features, labels, mode):
-            # inputs = tf.split(features["closes"], SEQUENCE_LENGTH, 1)
-            inputs = features["closes"]
-            inputs = tf.reshape(tensor=inputs, shape=[64,21,1])
+            inputs = tf.split(features["closes"], SEQUENCE_LENGTH, 1)
+            # inputs = features["closes"]
+            # inputs = tf.reshape(tensor=inputs, shape=[64,21,1])
 
             def _add_conv_layers(input_layer):
                 dropout = 0
@@ -61,8 +61,8 @@ class Model:
 
             def _add_rnn_layers(input_layer):
 
-                input_layer = tf.split(input_layer, SEQUENCE_LENGTH, 1)
-                input_layer = [tf.squeeze(l) for l in input_layer]
+                # input_layer = tf.split(input_layer, SEQUENCE_LENGTH, 1)
+                # input_layer = [tf.squeeze(l) for l in input_layer]
                 rnn_layers = [tf.nn.rnn_cell.LSTMCell(
                     num_units=size,
                     forget_bias=forget_bias,
@@ -77,8 +77,8 @@ class Model:
             def _add_fc_layers(rnn_output):
                 return tf.layers.dense(inputs=rnn_output, units=len(TARGET_LABELS), activation=tf.nn.tanh)
 
-            cnn_output = _add_conv_layers(inputs)
-            rnn_output = _add_rnn_layers(cnn_output)
+            # cnn_output = _add_conv_layers(inputs)
+            rnn_output = _add_rnn_layers(inputs)
             logits = _add_fc_layers(rnn_output)
 
             probabilities = tf.nn.softmax(logits)
