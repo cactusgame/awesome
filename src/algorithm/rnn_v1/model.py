@@ -26,41 +26,50 @@ class Model:
     def make_model_fn(self, tf_transform_output):
 
         def model_fn(features, labels, mode):
-            inputs = tf.split(features["closes"], SEQUENCE_LENGTH, 1)
+            # inputs = tf.split(features["closes"], SEQUENCE_LENGTH, 1)
+            inputs = features["closes"]
+            inputs = tf.reshape(tensor=inputs, shape=[64,21,1])
 
-            def _add_conv_layers(inks, lengths):
-                """Adds convolution layers."""
-                convolved = inks
-                for i in range(len(params.num_conv)):
+            def _add_conv_layers(input_layer):
+                dropout = 0
+                batch_norm = False
+                num_conv = [48, 64, 96] # "Number of conv layers along with number of filters per layer."
+                conv_len = [5, 5, 3] # Length of the convolution filters.
+
+                convolved = input_layer
+                for i in range(len(num_conv)):
                     convolved_input = convolved
-                    if params.batch_norm:
+                    if batch_norm:
                         convolved_input = tf.layers.batch_normalization(
                             convolved_input,
                             training=(mode == tf.estimator.ModeKeys.TRAIN))
                     # Add dropout layer if enabled and not first convolution layer.
-                    if i > 0 and params.dropout:
-                        convolved_input = tf.layers.dropout(
-                            convolved_input,
-                            rate=params.dropout,
-                            training=(mode == tf.estimator.ModeKeys.TRAIN))
+                    # if i > 0 and params.dropout:
+                    #     convolved_input = tf.layers.dropout(
+                    #         convolved_input,
+                    #         rate=params.dropout,
+                    #         training=(mode == tf.estimator.ModeKeys.TRAIN))
                     convolved = tf.layers.conv1d(
                         convolved_input,
-                        filters=params.num_conv[i],
-                        kernel_size=params.conv_len[i],
+                        filters=num_conv[i],
+                        kernel_size=conv_len[i],
                         activation=None,
                         strides=1,
                         padding="same",
                         name="conv1d_%d" % i)
-                return convolved, lengths
+                return convolved
 
-            def _add_rnn_layers():
+            def _add_rnn_layers(input_layer):
+
+                input_layer = tf.split(input_layer, SEQUENCE_LENGTH, 1)
+                input_layer = [tf.squeeze(l) for l in input_layer]
                 rnn_layers = [tf.nn.rnn_cell.LSTMCell(
                     num_units=size,
                     forget_bias=forget_bias,
                     activation=tf.nn.tanh) for size in hidden_units]
                 multi_rnn_cell = tf.nn.rnn_cell.MultiRNNCell(rnn_layers)
                 outputs, _ = tf.nn.static_rnn(cell=multi_rnn_cell,
-                                              inputs=inputs,
+                                              inputs=input_layer,
                                               dtype=tf.float32)
                 outputs = outputs[-1]
                 return outputs
@@ -68,7 +77,8 @@ class Model:
             def _add_fc_layers(rnn_output):
                 return tf.layers.dense(inputs=rnn_output, units=len(TARGET_LABELS), activation=tf.nn.tanh)
 
-            rnn_output = _add_rnn_layers()
+            cnn_output = _add_conv_layers(inputs)
+            rnn_output = _add_rnn_layers(cnn_output)
             logits = _add_fc_layers(rnn_output)
 
             probabilities = tf.nn.softmax(logits)
