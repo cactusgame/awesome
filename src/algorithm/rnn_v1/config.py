@@ -48,7 +48,7 @@ class Config:
     EVAL_TRAIN_SUBSAMPLE_FACTOR = 1
 
     # Train for `TRAIN_MAX_STEPS` steps max, then stop.
-    TRAIN_MAX_STEPS = 1 * 100 * 1000
+    TRAIN_MAX_STEPS = 1 * 1000 * 1000
     # Early stopping criterium, even if `TRAIN_MAX_STEPS` is not reached.
     STOP_AFTER_WORSE_EVALS_NUM = 5
 
