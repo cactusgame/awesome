@@ -8,12 +8,13 @@ from src.extract.feature_sdk import FeatureSDK
 from src.context import log
 from src.context import context
 from src.extract.feature_definition import feature_definition_config
-from src.extract.feature_definition import FEATURE_BASIC
 
 
 class BasicExtractor:
-    def __init__(self):
-        self.sdk = FeatureSDK(FEATURE_BASIC)
+    def __init__(self, params=None):
+        self.normalized = params['normalized']
+        self.output_name = params['output_name']
+        self.sdk = FeatureSDK(self.output_name)
 
     def execute(self, all_shares, start_date, end_date):
         """
@@ -51,16 +52,17 @@ class BasicExtractor:
         close_df = self._extract_one_share_n_days_close(bar_df, share_id)
         assert close_df is not None, "share_id = {} close_df is None".format(share_id)
 
-        vol_df = self._extract_one_share_n_days_vol(bar_df, share_id)
-        assert vol_df is not None, "share_id = {} vol_df is None".format(share_id)
+        # vol_df = self._extract_one_share_n_days_vol(bar_df, share_id)
+        # assert vol_df is not None, "share_id = {} vol_df is None".format(share_id)
+        #
+        # ror_df = self._extract_one_share_n_days_ror(bar_df, share_id)
+        # assert ror_df is not None, "share_id = {} ror_df is None".format(share_id)
 
-        ror_df = self._extract_one_share_n_days_ror(bar_df, share_id)
-        assert ror_df is not None, "share_id = {} ror_df is None".format(share_id)
-
-        self._merge_data_to_commit(close_df, vol_df, ror_df)
+        self._merge_data_to_commit(close_df)
+        # self._merge_data_to_commit(close_df, vol_df, ror_df)
 
     def _extract_one_share_n_days_close(self, bar_df, share_id):
-        close_s = bar_df['close']
+        close_s = bar_df['close'] # todo: date order?
         # print(close_s)
         close_list = close_s.tolist()
         date_list = close_s.index.tolist()
@@ -68,23 +70,28 @@ class BasicExtractor:
 
         # due to the order of close_price in tushare is DESC, so we can get the data from recently.
         # example
-        """
-        query from 2018-12-20 to 2018-12-28
-        >>>> INSERT INTO FEATURE (time,share_id,close_b0,close_b1,close_b2) VALUES ('20181228','000001.SZ',9.38,9.28,9.3)
-        >>>> INSERT INTO FEATURE (time,share_id,close_b0,close_b1,close_b2) VALUES ('20181227','000001.SZ',9.28,9.3,9.34)
-        >>>> INSERT INTO FEATURE (time,share_id,close_b0,close_b1,close_b2) VALUES ('20181226','000001.SZ',9.3,9.34,9.42)
-        >>>> INSERT INTO FEATURE (time,share_id,close_b0,close_b1,close_b2) VALUES ('20181225','000001.SZ',9.34,9.42,9.45)
-        >>>> INSERT INTO FEATURE (time,share_id,close_b0,close_b1,close_b2) VALUES ('20181224','000001.SZ',9.42,9.45,9.71)
-        """
         keys, values = [], []
-        n = feature_definition_config["close_n_days_before"]
+        n = feature_definition_config["seq_step"]
         keys = keys + ["time", "share_id"]
-        keys = keys + ["close_b" + str(i) for i in range(n)]
-
+        keys = keys + ["close_b" + str(i-1) for i in range(n-1,0,-1)]
+        keys = keys + ["target_close_price"]
         for index in range(len(close_list)):
             if len(close_list[index:index + n]) == n:  # else: not enough (N) data, so drop it.
+
+                close_segment = close_list[index:index + n][::-1]
+                if self.normalized:
+                    close_price_x = [1] + [curr / close_segment[i] for i, curr in enumerate(close_segment[1:-1])]
+                    close_price_y = close_segment[-1] / close_segment[-2]
+                else:
+                    close_price_x = close_segment[:-2]
+                    close_price_y = close_segment[-1]
+
+                precision = 4
+                close_price_x = [round(x, precision) for x in close_price_x]
+                close_price_y = round(close_price_y, precision)
+
                 values.append(
-                    [str(date_list[index]), str(share_id)] + preprocessing.scale(close_list[index:index + n]).tolist())
+                    [str(date_list[index]), str(share_id)] + close_price_x + [close_price_y])
         return pd.DataFrame(columns=keys, data=values)
 
     def _extract_one_share_n_days_vol(self, bar_df, share_id):
@@ -136,14 +143,18 @@ class BasicExtractor:
 
         return pd.DataFrame(columns=keys, data=values)
 
-    def _merge_data_to_commit(self, close_df, vol_df, ror_df):
-        if close_df is None or ror_df is None or vol_df is None:
+    def _merge_data_to_commit(self, close_df):
+        if close_df is None:
             return
 
-        step1_df = pd.merge(close_df, vol_df, on=["time", "share_id"])
-        result_df = pd.merge(step1_df, ror_df, on=["time", "share_id"])
+        result_df = close_df
 
-        # todo: adjust the orders of the columns?
+        # if close_df is None or ror_df is None or vol_df is None:
+        #     return
+        #
+        # step1_df = pd.merge(close_df, vol_df, on=["time", "share_id"])
+        # result_df = pd.merge(step1_df, ror_df, on=["time", "share_id"])
+
         for index, row in result_df.iterrows():
             self.sdk.save(row.index.tolist(), row.values.tolist())
         self.sdk.commit()

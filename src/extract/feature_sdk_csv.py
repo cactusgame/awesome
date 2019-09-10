@@ -29,9 +29,6 @@ class FeatureSDKCsvImpl:
         line = {}
         for i in range(len(feature_names)):
             v = values[i]
-            # adjust the precision for float
-            if feature_extractor_definition[feature_names[i]][0] == 'float':
-                v = round(v, 4)
             line[feature_names[i]] = v
 
         self.csv_writer.writerow(line)
@@ -72,7 +69,6 @@ class FeatureSDKCsvImpl:
         # filter out field need to store into db
         feature_columns = [key for key in feature_extractor_definition.keys() if
                            feature_extractor_definition[key][5] != TYPE_INFER]
-        feature_columns.sort()
         self.feature_columns = feature_columns
 
 
