@@ -5,14 +5,11 @@ from src.extract.feature_definition import feature_extractor_definition
 from src.extract.feature_definition import TYPE_INFER
 
 from src.base.config import cfg
-# from data_formatter import DataFormatter
-from data_formatter import Target
+from data_formatter import DataFormatter
 # from src.context import log
 import tensorflow.contrib.rnn as rnn
 
-SEQUENCE_LENGTH = 21
 OUTPUT_SEQUENCE_LENGTH = 1
-
 
 # VALUES_FEATURE_NAME = ["closes"]
 # forget_bias = 1.0
@@ -22,11 +19,11 @@ OUTPUT_SEQUENCE_LENGTH = 1
 
 class Model:
     def __init__(self):
-        pass
+        self.schema = DataFormatter()
 
     def make_model_fn(self):
         def model_fn(features, labels, mode):
-            inputs = tf.split(features['close_price'], SEQUENCE_LENGTH, 1)
+            inputs = tf.split(features['seq_close_price'], len(self.schema.seq_features['seq_close_price']), 1)
 
             hidden_units = 4
             forget_bias = 1.0
@@ -43,11 +40,6 @@ class Model:
             # slice to keep only the last cell of the RNN
             outputs = outputs[-1]
             print('last outputs={}'.format(outputs))
-
-            # output is result of linear activation of last layer of RNN
-            #     weight = tf.Variable(tf.random_normal([LSTM_SIZE, N_OUTPUTS]))
-            #     bias = tf.Variable(tf.random_normal([N_OUTPUTS]))
-            #     predictions = tf.matmul(outputs, weight) + bias
 
             predictions = tf.layers.dense(inputs=outputs,
                                           units=OUTPUT_SEQUENCE_LENGTH,
@@ -98,24 +90,22 @@ class Model:
         :return: Estimator input function for train/eval
         """
 
+        def create_seq_feature(transformed_features, feature_column_names):
+            feature_list = []
+            for col_name in feature_column_names:
+                feature_list.append(transformed_features[col_name])
+
+            feature_tensor = tf.convert_to_tensor(feature_list, dtype=tf.float32)
+            feature_tensor = tf.transpose(feature_tensor, [1, 0])
+            return feature_tensor
+
         def parse_function(transformed_features):
-            # input_size = 1
-            # num_step = 21
-
-            close_len = 21
-            tensor_raw_close_price = transformed_features['close_price']
-            tensor_expand = tf.expand_dims(tensor_raw_close_price, -1)
-            close_price_list = tf.decode_csv(tensor_expand, record_defaults=[[0.0] for i in range(0, close_len)])
-            close_price_list_tensor = tf.concat(close_price_list, axis=1)
-
-            target_close = transformed_features['target_close_price']
-
-            # self.inputs = tf.placeholder(tf.float32, [None, self.num_steps, self.input_size], name="inputs")
-            # self.targets = tf.placeholder(tf.float32, [None, self.input_size], name="targets")
             features = {}
-            features['close_price'] = close_price_list_tensor
+            for feature_name, feature_column_names in self.schema.seq_features.items():
+                features[feature_name] = create_seq_feature(transformed_features, feature_column_names)
 
-            label = tf.expand_dims(target_close, -1)
+            target = transformed_features[self.schema.target]
+            label = tf.expand_dims(target, -1)
             return features, label
 
         def input_fn():
@@ -138,7 +128,11 @@ class Model:
         return input_fn
 
     def make_serving_input_fn(self):
-        # data_formatter = DataFormatter()
+        """
+        fake impl
+        :return:
+        """
+
         def serving_input_fn():
             """
             inputs : supported features
