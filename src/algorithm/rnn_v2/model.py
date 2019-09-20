@@ -25,7 +25,7 @@ class Model:
         def model_fn(features, labels, mode):
             inputs = tf.split(features['seq_close_price'], len(self.schema.seq_features['seq_close_price']), 1)
 
-            hidden_units = 4
+            hidden_units = 64
             forget_bias = 1.0
 
             # 1. configure the RNN

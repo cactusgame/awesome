@@ -3,6 +3,7 @@ TODO list
 - 测试集，训练集在时间上要分开。因为大盘有时间一致性。
   训练集（时间越接近当前时间越好）指定时间 2012-01， 2019-01
 - 修改预处理数据，不再预先编译Graph。csv输出（注意顺序）close20,close19...close0,today.(input_size=1, num_step=20)
+- 除了tensorboard之外，可视化预测，验证集结果
 
 
 - how to use wraped FC in v5

@@ -20,7 +20,11 @@ class DataFormatter:
         - seq feature: multiple columns and has order
         """
         self.seq_features = OrderedDict()
-        self.seq_features['seq_close_price'] = ['close_b2', 'close_b1', 'close_b0']
+        self.seq_features['seq_close_price'] = ['close_b19', 'close_b18', 'close_b17', 'close_b16', 'close_b15',
+                                                'close_b14', 'close_b13', 'close_b12',
+                                                'close_b11', 'close_b10', 'close_b9', 'close_b8', 'close_b7',
+                                                'close_b6',
+                                                'close_b5', 'close_b4', 'close_b3', 'close_b2', 'close_b1', 'close_b0']
 
         self.simple_features = []
 
