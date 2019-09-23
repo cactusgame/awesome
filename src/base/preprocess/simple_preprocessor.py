@@ -72,7 +72,7 @@ class SimplePreprocessor:
         ret_stat = os.system(shuf_cmd)
         if ret_stat != 0:
             log.info('`terashuf` failed, falling back to `sort -R`.')
-            shuf_cmd = 'sort -R {} -o {}'.format(cfg.get_exp_file(file_name), cfg.get_shuffled_file(file_name))
+            shuf_cmd = 'sort -R {} -o {}'.format(cfg.get_exp_file_without_header(file_name), cfg.get_shuffled_file(file_name))
             ret_stat = os.system(shuf_cmd)
 
         log.info('Executing shuf call: \"{}\"'.format(shuf_cmd))

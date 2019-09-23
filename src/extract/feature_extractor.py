@@ -2,6 +2,7 @@ import time
 from src.extract.impl.basic_extractor import BasicExtractor
 from src.extract.impl.sequence_extractor import SequenceExtractor
 
+from pandas import Series
 from src.context import context
 from src.context import log
 from src.extract.econfig import econfig
@@ -27,6 +28,11 @@ class FeatureExtractor:
             ext = extractor_class(params)
             ext.execute(all_shares, start_date, end_date)
 
+    def extract_one(self, share_id, start_date, end_date, params=None):
+        for extractor_class in self.extractor_classes:
+            ext = extractor_class(params)
+            ext.execute(Series([share_id]), start_date, end_date)
+
 
 """
 RNN extractor:
@@ -47,10 +53,13 @@ if __name__ == "__main__":
     extractor = FeatureExtractor()
 
     if econfig.DEBUG:
-        extractor.extract_all(start_date='20080101', end_date='20080301',
-                              params={'normalized': True, 'output_name': 'feature_train'})  # as train
-        extractor.extract_all(start_date='20190101', end_date='20190301',
-                              params={'normalized': True, 'output_name': 'feature_eval'})  # as eval
+        # extractor.extract_all(start_date='20080101', end_date='20080301',
+        #                       params={'normalized': True, 'output_name': 'feature_train'})  # as train
+        # extractor.extract_all(start_date='20190101', end_date='20190301',
+        #                       params={'normalized': True, 'output_name': 'feature_eval'})  # as eval
+
+        extractor.extract_one(share_id="603999.SH", start_date='20080101', end_date='20180101',
+                              params={'normalized': True, 'output_name': 'feature_eval'})
 
         # extractor.extract_one_share(share_id='000411.SZ', start_date='20050101', end_date='20181231')
     else:

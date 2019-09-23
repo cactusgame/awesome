@@ -45,9 +45,10 @@ class FeatureSDKCsvImpl:
         all shares extraction complete
         :return:
         """
-        if self.enable_upload or True:
-            FileUtil.upload_data(os.path.abspath(self.feature_data_csv))
         self.csvfile.close()
+
+        if self.enable_upload:
+            FileUtil.upload_data(os.path.abspath(self.feature_data_csv))
 
     def get(self):
         with open(self.feature_data_csv, 'r') as csvfile:

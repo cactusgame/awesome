@@ -45,6 +45,8 @@ class SequenceExtractor:
         # you should close the sdk when finishing extraction
         self.sdk.close()
 
+        self._validate_data()
+
     def extract_one_share(self, share_id, start_date, end_date):
         """
         :param share_id:
@@ -143,3 +145,6 @@ class SequenceExtractor:
         for index, row in result_df.iterrows():
             self.sdk.save(row.index.tolist(), row.values.tolist())
         self.sdk.commit()
+
+    def _validate_data(self):
+        pass

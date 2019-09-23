@@ -34,7 +34,7 @@ def main(algo_id=None, train_steps=None, download_feature_db=None, do_preprocess
         trainer = Trainer()
         trainer.train()
 
-        # Uploader.upload_model()
+        Uploader.upload_model()
 
         log.info("[total] use {} seconds totally".format(time.time() - _start))
     except Exception as e:
