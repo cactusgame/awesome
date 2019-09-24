@@ -1,3 +1,4 @@
+import click
 import time
 from src.extract.impl.basic_extractor import BasicExtractor
 from src.extract.impl.sequence_extractor import SequenceExtractor
@@ -48,18 +49,22 @@ SequenceExtractor: use different date range as train and eval
   extract(start_date ,end_date) as eval file
 
 """
-if __name__ == "__main__":
+@click.command(context_settings=dict(ignore_unknown_options=True, allow_extra_args=True))
+@click.option("--test", type=bool)
+def main(test=None):
     _start = time.time()
+    econfig.init(test)
+
     extractor = FeatureExtractor()
 
     if econfig.DEBUG:
-        # extractor.extract_all(start_date='20080101', end_date='20080301',
-        #                       params={'normalized': True, 'output_name': 'feature_train'})  # as train
+        extractor.extract_all(start_date='20080101', end_date='20080301',
+                              params={'normalized': True, 'output_name': 'feature_train'})  # as train
         # extractor.extract_all(start_date='20190101', end_date='20190301',
         #                       params={'normalized': True, 'output_name': 'feature_eval'})  # as eval
 
-        extractor.extract_one(share_id="603999.SH", start_date='20080101', end_date='20180101',
-                              params={'normalized': True, 'output_name': 'feature_eval'})
+        # extractor.extract_one(share_id="603999.SH", start_date='20080101', end_date='20180101',
+        #                       params={'normalized': True, 'output_name': 'feature_eval'})
 
         # extractor.extract_one_share(share_id='000411.SZ', start_date='20050101', end_date='20181231')
     else:
@@ -72,3 +77,7 @@ if __name__ == "__main__":
                               params={'normalized': True, 'output_name': 'feature_eval'})  # as eval
 
     log.info("extracting completed, use time {}s".format(str(time.time() - _start)))
+
+
+if __name__ == "__main__":
+    main()

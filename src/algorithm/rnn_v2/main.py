@@ -13,15 +13,16 @@ from src.base.env import Env
 
 @click.command(context_settings=dict(ignore_unknown_options=True, allow_extra_args=True))
 @click.option("--algo_id", type=str)
+@click.option("--test", type=bool)
 @click.option("--train_steps", type=int)
 @click.option("--download_feature_db", type=bool)
 @click.option("--do_preprocessing", type=bool)
 @click.option("--upload_model", type=bool)
-def main(algo_id=None, train_steps=None, download_feature_db=None, do_preprocessing=None, upload_model=None):
+def main(algo_id=None, test=None, train_steps=None, download_feature_db=None, do_preprocessing=None, upload_model=None):
     try:
         _start = time.time()
 
-        cfg.load(Config(algo_id, train_steps, download_feature_db, do_preprocessing, upload_model))
+        cfg.load(Config(algo_id, test, train_steps, download_feature_db, do_preprocessing, upload_model))
 
         cfg.cls_data_formatter = os.path.normpath(os.path.join(os.path.dirname(__file__), 'data_formatter.py'))
         cfg.cls_coder = os.path.normpath(os.path.join(os.path.dirname(__file__), 'coder.py'))

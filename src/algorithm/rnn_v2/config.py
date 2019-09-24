@@ -4,6 +4,7 @@ import time
 
 
 class Config:
+    test = False
     # Some file names
     # name of the file which stores all experience
     feature_db_path = "data/features_db.csv"
@@ -93,7 +94,7 @@ class Config:
     cls_data_formatter = ''
     cls_coder = ''
 
-    def __init__(self, algo_id, train_steps, download_feature_db, do_preprocessing, upload_model):
+    def __init__(self, algo_id, test, train_steps, download_feature_db, do_preprocessing, upload_model):
         self.algo_id = algo_id
 
         self.download_feature_db = True
@@ -110,6 +111,9 @@ class Config:
 
         if train_steps is not None:
             self.TRAIN_MAX_STEPS = train_steps
+
+        if test is not None:
+            self.test = test
 
     def get_exp_file(self,file_name):
         return "data/{}.csv".format(file_name)

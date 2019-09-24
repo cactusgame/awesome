@@ -75,6 +75,8 @@ class BasicExtractor:
         keys = keys + ["time", "share_id"]
         keys = keys + ["close_b" + str(i-1) for i in range(n-1,0,-1)]
         keys = keys + ["target_close_price"]
+        keys = keys + ["target_trend"]
+
         for index in range(len(close_list)):
             if len(close_list[index:index + n]) == n:  # else: not enough (N) data, so drop it.
 
@@ -90,8 +92,9 @@ class BasicExtractor:
                 close_price_x = [round(x, precision) for x in close_price_x]
                 close_price_y = round(close_price_y, precision)
 
+                trend = 1 if close_price_y > 1 else 0
                 values.append(
-                    [str(date_list[index]), str(share_id)] + close_price_x + [close_price_y])
+                    [str(date_list[index]), str(share_id)] + close_price_x + [close_price_y] + [trend])
         return pd.DataFrame(columns=keys, data=values)
 
     def _extract_one_share_n_days_vol(self, bar_df, share_id):

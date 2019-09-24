@@ -92,10 +92,10 @@ feature_extractor_definition["close_b0"] = ("float", "REAL", "tf.FixedLenFeature
 # feature_extractor_definition["ror_60_days"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_TARGET)
 
 # for sequence
-# feature_extractor_definition["close_price"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE)
 feature_extractor_definition["target_close_price"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_TARGET)
 # feature_extractor_definition["volume"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_FEATURE)
 # feature_extractor_definition["target_volume"] = ("float", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.float32, TYPE_TARGET)
+feature_extractor_definition["target_trend"] = ("int", "REAL", "tf.FixedLenFeature", FORMAT_NUMBER, tf.int32, TYPE_TARGET)
 
 
 
