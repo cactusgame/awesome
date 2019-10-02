@@ -20,7 +20,7 @@ class Config:
     exp_log_data_file_train_tfrecord = '{}.train.tfrecord'.format(exp_file_path)
     exp_log_data_file_eval_tfrecord = '{}.eval.tfrecord'.format(exp_file_path)
 
-    MODEL_NAME = "rnn_v1"
+    MODEL_NAME = "rnn_v2"
 
     # COS related
     COS_MODEL_DIR = "/models/{}".format(MODEL_NAME)

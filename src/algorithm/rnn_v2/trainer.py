@@ -41,7 +41,7 @@ class Trainer:
 
         tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
 
-        # estimator.export_savedmodel(cfg.TARGET_MODEL_DIR, make_serving_input_fn, strip_default_attrs=True)
+        estimator.export_savedmodel(cfg.TARGET_MODEL_DIR, make_serving_input_fn, strip_default_attrs=True)
 
 
 if __name__ == "__main__":

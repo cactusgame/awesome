@@ -28,4 +28,4 @@ class DataFormatter:
 
         self.simple_features = []
 
-        self.target = "target_close_price"
+        self.target = "target_trend"

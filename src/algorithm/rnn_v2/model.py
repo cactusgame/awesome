@@ -10,6 +10,7 @@ from data_formatter import DataFormatter
 import tensorflow.contrib.rnn as rnn
 
 OUTPUT_SEQUENCE_LENGTH = 1
+TARGET_LABELS = [0, 1]
 
 # VALUES_FEATURE_NAME = ["closes"]
 # forget_bias = 1.0
@@ -41,15 +42,23 @@ class Model:
             outputs = outputs[-1]
             print('last outputs={}'.format(outputs))
 
-            predictions = tf.layers.dense(inputs=outputs,
-                                          units=OUTPUT_SEQUENCE_LENGTH,
-                                          activation=None)
+            logits = tf.layers.dense(inputs=outputs,
+                                          units=len(TARGET_LABELS),
+                                          activation=tf.nn.sigmoid)
 
-            predict_output = {'values': predictions}
+            predict_output = {'values': logits}
 
             if mode == tf.estimator.ModeKeys.PREDICT:
+                probabilities = tf.nn.softmax(logits)
+                predicted_indices = tf.argmax(probabilities, 1)
+
+                # Convert predicted_indices back into strings
+                predictions = {
+                    'class': tf.gather(TARGET_LABELS, predicted_indices),
+                    'probabilities': probabilities
+                }
                 export_outputs = {
-                    'predictions': tf.estimator.export.PredictOutput(predict_output)
+                    'prediction': tf.estimator.export.PredictOutput(predictions)
                 }
 
                 return tf.estimator.EstimatorSpec(
@@ -57,20 +66,39 @@ class Model:
                     predictions=predict_output,
                     export_outputs=export_outputs)
 
-            # Calculate loss using mean squared error
-            loss = tf.losses.mean_squared_error(labels, predictions)
-
+            # loss for classification
+            loss = tf.reduce_mean(
+                tf.nn.sparse_softmax_cross_entropy_with_logits(
+                    logits=logits, labels=labels))
+            # loss for regression
+            # loss = tf.losses.mean_squared_error(labels, logits)
             tf.summary.scalar('loss', loss)
-            # Create Optimiser
-            optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
 
-            # Create training operation
+
+            # ========== train ==========
+            optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
             train_op = optimizer.minimize(loss=loss, global_step=tf.train.get_global_step())
 
-            # Calculate root mean squared error as additional eval metric
+            # ========== eval =============
+            probabilities = tf.nn.softmax(logits)
+            predicted_indices = tf.argmax(probabilities, 1)
+            labels_one_hot = tf.one_hot(
+                labels,
+                depth=len(TARGET_LABELS)
+            )
+            acc = tf.metrics.accuracy(labels, predicted_indices)
+
+            # ========= train and eval ========
+            tf.summary.scalar('acc', acc[1])
+
             eval_metric_ops = {
-                "rmse": tf.metrics.root_mean_squared_error(labels, predictions),
-                "mae": tf.metrics.mean_absolute_error(labels, predictions)
+                # eval metrics for regression
+                # "rmse": tf.metrics.root_mean_squared_error(labels, logits),
+                # "mae": tf.metrics.mean_absolute_error(labels, logits)
+
+                # eval metrics for classification
+                'accuracy': acc,
+                'auroc': tf.metrics.auc(labels_one_hot, probabilities)
             }
 
             # Provide an estimator spec for `ModeKeys.EVAL` and `ModeKeys.TRAIN` modes.
@@ -105,8 +133,8 @@ class Model:
                 features[feature_name] = create_seq_feature(transformed_features, feature_column_names)
 
             target = transformed_features[self.schema.target]
-            label = tf.expand_dims(target, -1)
-            return features, label
+            # label = tf.expand_dims(target, -1)
+            return features, target
 
         def input_fn():
             feature_columns = [key for key in feature_extractor_definition.keys() if
@@ -141,8 +169,8 @@ class Model:
             inputs, inputs_ext = {}, {}
 
             # Used input features
-            key = "close_price"
-            placeholder = tf.placeholder(name=key, shape=[None], dtype=tf.float32)
+            key = "seq_close_price"
+            placeholder = tf.placeholder(name=key, shape=[None, 20], dtype=tf.float32)
             inputs[key] = placeholder
             inputs_ext[key] = placeholder
 
