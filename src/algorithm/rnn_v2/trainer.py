@@ -4,6 +4,8 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_transform as tft
 
+from src.extract.feature_definition import TRAIN_FILE_NAME
+from src.extract.feature_definition import EVAL_FILE_NAME
 from src.context import context
 from src.context import log
 from src.base.config import cfg
@@ -19,10 +21,10 @@ class Trainer:
 
         # Generate all `input_fn`s for the tf estimator
         train_input_fn = self.model.make_training_input_fn(
-            cfg.get_shard_file("feature_train") + '*',
+            cfg.get_shard_file(TRAIN_FILE_NAME) + '*',
             cfg.TRAIN_BATCH_SIZE)
         eval_input_fn = self.model.make_training_input_fn(
-            cfg.get_shard_file("feature_eval") + '*',
+            cfg.get_shard_file(EVAL_FILE_NAME) + '*',
             cfg.EVAL_BATCH_SIZE)
 
         make_serving_input_fn = self.model.make_serving_input_fn()

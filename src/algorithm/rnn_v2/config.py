@@ -115,17 +115,17 @@ class Config:
         if test is not None:
             self.test = test
 
-    def get_exp_file(self,file_name):
+    def get_exp_file(self, file_name):
         return "data/{}.csv".format(file_name)
 
-    def get_exp_file_without_header(self,file_name):
+    def get_exp_file_without_header(self, file_name):
         return '{}.withoutheader'.format(self.get_exp_file(file_name))
 
-    def get_shuffled_file(self,file_name):
+    def get_shuffled_file(self, file_name):
         return '{}.shuf'.format(self.get_exp_file(file_name))
 
-    def get_shard_file(self,file_name):
+    def get_shard_file(self, file_name):
         return '{}.shard'.format(self.get_exp_file(file_name))
 
-    def get_tfr_file(self,file_name):
+    def get_tfr_file(self, file_name):
         return '{}.tfr'.format(self.get_exp_file(file_name))

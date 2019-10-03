@@ -1,6 +1,9 @@
 import tensorflow as tf
 import collections
 
+TRAIN_FILE_NAME = 'feature_train_sz50'
+EVAL_FILE_NAME = 'feature_eval_sz50'
+
 # define different type of features, usually, it's depends on the data source or data API
 FEATURE_ALL = "feature_all"
 FEATURE_BASIC = "feature_basic"

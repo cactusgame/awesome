@@ -3,6 +3,8 @@ import os
 import multiprocessing as mp
 import shutil
 
+from src.extract.feature_definition import TRAIN_FILE_NAME
+from src.extract.feature_definition import EVAL_FILE_NAME
 from src.utils.file_util import FileUtil
 from src.base.config import cfg
 from src.context import log
@@ -25,7 +27,7 @@ class SimplePreprocessor:
         self.exp_log_data_file_shuf = None
         self.exp_log_header = None
         # self.data_formatter = import_from_uri(cfg.cls_data_formatter).DataFormatter()
-        self.files = ['feature_train', 'feature_eval']
+        self.files = [TRAIN_FILE_NAME, EVAL_FILE_NAME]
 
     def process(self):
         if not cfg.do_preprocessing:
@@ -72,7 +74,8 @@ class SimplePreprocessor:
         ret_stat = os.system(shuf_cmd)
         if ret_stat != 0:
             log.info('`terashuf` failed, falling back to `sort -R`.')
-            shuf_cmd = 'sort -R {} -o {}'.format(cfg.get_exp_file_without_header(file_name), cfg.get_shuffled_file(file_name))
+            shuf_cmd = 'sort -R {} -o {}'.format(cfg.get_exp_file_without_header(file_name),
+                                                 cfg.get_shuffled_file(file_name))
             ret_stat = os.system(shuf_cmd)
 
         log.info('Executing shuf call: \"{}\"'.format(shuf_cmd))
@@ -108,4 +111,3 @@ class SimplePreprocessor:
         # os.remove(self.eval_split_fname_out)
         log.info(
             'complete split Train and Eval files into serval shards. use {:.2f} sec.'.format(time.time() - st))
-

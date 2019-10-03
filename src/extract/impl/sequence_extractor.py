@@ -30,8 +30,10 @@ class SequenceExtractor:
         :param end_date:
         :return:
         """
-        for index, share in all_shares.iteritems():
+        index = 0
+        for share in all_shares:
             try:
+                index = index + 1
                 print("[SequenceExtractor] process the {} shares".format(index))
                 self.extract_one_share(share, start_date, end_date)
             except Exception as e:

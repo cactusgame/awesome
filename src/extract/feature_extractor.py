@@ -2,6 +2,8 @@ import click
 import time
 from src.extract.impl.basic_extractor import BasicExtractor
 from src.extract.impl.sequence_extractor import SequenceExtractor
+from src.extract.feature_definition import TRAIN_FILE_NAME
+from src.extract.feature_definition import EVAL_FILE_NAME
 
 from pandas import Series
 from src.context import context
@@ -21,13 +23,16 @@ class FeatureExtractor:
                                                     fields='ts_code,name,area,industry,list_date')
         all_shares = all_shares_df['ts_code'][all_shares_df['list_date'] < end_date]
 
+        self.extract_multiple(all_shares.tolist(), start_date, end_date, params)
+
+    def extract_multiple(self, share_ids, start_date, end_date, params=None):
         # select part of all data for testing
         if econfig.DEBUG:
-            all_shares = all_shares[:5]
+            share_ids = share_ids[:5]
 
         for extractor_class in self.extractor_classes:
             ext = extractor_class(params)
-            ext.execute(all_shares, start_date, end_date)
+            ext.execute(share_ids, start_date, end_date)
 
     def extract_one(self, share_id, start_date, end_date, params=None):
         for extractor_class in self.extractor_classes:
@@ -49,6 +54,8 @@ SequenceExtractor: use different date range as train and eval
   extract(start_date ,end_date) as eval file
 
 """
+
+
 @click.command(context_settings=dict(ignore_unknown_options=True, allow_extra_args=True))
 @click.option("--test", type=bool)
 def main(test=None):
@@ -57,24 +64,37 @@ def main(test=None):
 
     extractor = FeatureExtractor()
 
-    if econfig.DEBUG:
-        extractor.extract_all(start_date='20080101', end_date='20080301',
-                              params={'normalized': True, 'output_name': 'feature_train'})  # as train
-        # extractor.extract_all(start_date='20190101', end_date='20190301',
-        #                       params={'normalized': True, 'output_name': 'feature_eval'})  # as eval
+    # select the target shares first
+    # shangzheng 50
+    ingredient_df = context.tushare.index_weight(index_code='000016.SH', start_date='20080101', end_date='20180101')
+    ingredient_share_set = set(ingredient_df['con_code'].tolist())
 
+    if econfig.DEBUG:
+        pass
+        # extractor.extract_all(start_date='20080101', end_date='20080301',
+        #                       params={'normalized': True, 'output_name': TRAIN_FILE_NAME})  # as train
+        # extractor.extract_all(start_date='20190101', end_date='20190301',
+        #                       params={'normalized': True, 'output_name': EVAL_FILE_NAME})  # as eval
+
+        extractor.extract_multiple(share_ids=list(ingredient_share_set), start_date='20080101', end_date='20080301',
+                                   params={'normalized': True, 'output_name': TRAIN_FILE_NAME})
         # extractor.extract_one(share_id="603999.SH", start_date='20080101', end_date='20180101',
-        #                       params={'normalized': True, 'output_name': 'feature_eval'})
+        #                       params={'normalized': True, 'output_name': EVAL_FILE_NAME})
 
         # extractor.extract_one_share(share_id='000411.SZ', start_date='20050101', end_date='20181231')
     else:
         # for test stage1, we should only extract recent 4000 days's data
         # extractor.extract_all(start_date='20050101', end_date='20181231')
 
-        extractor.extract_all(start_date='20080101', end_date='20180101',
-                              params={'normalized': True, 'output_name': 'feature_train'})  # as train
-        extractor.extract_all(start_date='20180102', end_date='20190901',
-                              params={'normalized': True, 'output_name': 'feature_eval'})  # as eval
+        # extractor.extract_all(start_date='20080101', end_date='20180101',
+        #                       params={'normalized': True, 'output_name': TRAIN_FILE_NAME})  # as train
+        # extractor.extract_all(start_date='20180102', end_date='20190901',
+        #                       params={'normalized': True, 'output_name': EVAL_FILE_NAME})  # as eval
+
+        extractor.extract_multiple(share_ids=list(ingredient_share_set), start_date='20080101', end_date='20180101',
+                                   params={'normalized': True, 'output_name': TRAIN_FILE_NAME})  # as train
+        extractor.extract_multiple(share_ids=list(ingredient_share_set), start_date='20180102', end_date='20190901',
+                                   params={'normalized': True, 'output_name': EVAL_FILE_NAME})  # as eval
 
     log.info("extracting completed, use time {}s".format(str(time.time() - _start)))
 
