@@ -22,6 +22,10 @@ def main(algo_id=None, test=None, train_steps=None, download_feature_db=None, do
     try:
         _start = time.time()
 
+        log.info(">>>>>>>>>>>>>>>")
+        log.info("start and test version")
+        log.info(">>>>>>>>>>>>>>>")
+
         cfg.load(Config(algo_id, test, train_steps, download_feature_db, do_preprocessing, upload_model))
 
         cfg.cls_data_formatter = os.path.normpath(os.path.join(os.path.dirname(__file__), 'data_formatter.py'))

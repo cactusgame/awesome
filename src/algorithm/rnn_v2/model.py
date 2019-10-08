@@ -39,10 +39,12 @@ class Model:
                                         inputs=inputs,
                                         dtype=tf.float32)
             # slice to keep only the last cell of the RNN
-            outputs = outputs[-1]
-            print('last outputs={}'.format(outputs))
+            # I suppose the last output should be the predict price
+            # last_output = outputs[-1]
+            # print('last outputs={}'.format(last_output))
 
-            logits = tf.layers.dense(inputs=outputs,
+            result = outputs[-1] - outputs[-2]
+            logits = tf.layers.dense(inputs=result,
                                           units=len(TARGET_LABELS),
                                           activation=tf.nn.sigmoid)
 

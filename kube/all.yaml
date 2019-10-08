@@ -1,0 +1,41 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: training-all-in-one
+  namespace: monitoring
+spec:
+  restartPolicy: Never
+  initContainers:
+  - name: extractor
+    image: ccr.ccs.tencentyun.com/prometheus/extractor-test:latest
+    command: ["/bin/sh"]
+    args: ["-c","sh run_extractor.sh"]
+  containers:
+  - name: training-all-in-one
+    securityContext:
+      privileged: false
+    image: ccr.ccs.tencentyun.com/prometheus/training-test:latest
+    imagePullPolicy: Always
+    command: ["/bin/sh"]
+    args: ["-c","sh run_training.sh --algo_id rnn_v2 --download_feature_db true --do_preprocessing true --upload_model true"]
+    ports:
+    - containerPort: 8080
+    resources:
+      requests:
+        cpu: 7000m
+        memory: 54Gi
+      limits:
+        cpu: 7000m
+        memory: 54Gi
+    volumeMounts:
+      - name: featuredb
+        mountPath: /tmp/featuredb
+  volumes:
+    - name: featuredb
+      hostPath:
+        path: /mnt
+  imagePullSecrets:
+  - name: myregistrykey
+  securityContext:
+    runAsUser: 0
