@@ -26,7 +26,7 @@ class Model:
         def model_fn(features, labels, mode):
             inputs = tf.split(features['seq_close_price'], len(self.schema.seq_features['seq_close_price']), 1)
 
-            hidden_units = 64
+            hidden_units = 2
             forget_bias = 1.0
 
             # 1. configure the RNN
@@ -45,8 +45,7 @@ class Model:
 
             result = outputs[-1] - outputs[-2]
             logits = tf.layers.dense(inputs=result,
-                                          units=len(TARGET_LABELS),
-                                          activation=tf.nn.sigmoid)
+                                          units=len(TARGET_LABELS))
 
             predict_output = {'values': logits}
 

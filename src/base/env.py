@@ -10,4 +10,4 @@ class Env:
 
     @staticmethod
     def init():
-        os.system("rm -rf {}".format(cfg.TARGET_MODEL_DIR))
+        os.system("rm -rf {}".format(cfg.TARGET_DIR))

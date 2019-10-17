@@ -51,8 +51,10 @@ class BasicExtractor:
         bar_df = ts.pro_bar(pro_api=context.tushare, ts_code=share_id, start_date=start_date,
                             end_date=end_date, adj='qfq')
 
-        close_df = self._extract_one_share_n_days_close(bar_df, share_id)
-        assert close_df is not None, "share_id = {} close_df is None".format(share_id)
+        close_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="close")
+        open_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="open")
+        high_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="high")
+        low_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="low")
 
         # vol_df = self._extract_one_share_n_days_vol(bar_df, share_id)
         # assert vol_df is not None, "share_id = {} vol_df is None".format(share_id)
@@ -60,43 +62,49 @@ class BasicExtractor:
         # ror_df = self._extract_one_share_n_days_ror(bar_df, share_id)
         # assert ror_df is not None, "share_id = {} ror_df is None".format(share_id)
 
-        self._merge_data_to_commit(close_df)
+        self._merge_data_to_commit(close_df, open_df, high_df, low_df)
         # self._merge_data_to_commit(close_df, vol_df, ror_df)
 
-    def _extract_one_share_n_days_close(self, bar_df, share_id):
-        close_s = bar_df['close'] # todo: date order?
-        # print(close_s)
-        close_list = close_s.tolist()
-        date_list = close_s.index.tolist()
-        log.info("[extractor] share_id= {}. there are {} rows of close price".format(share_id, len(close_list)))
+    def _extract_one_share_n_days_price(self, share_id, bar_df, field="close"):
+        """
+        uniform method for getting price of HLOC
+        :param share_id:
+        :param bar_df:
+        :param field:
+        :return:
+        """
+        price_s = bar_df[field]
+        price_list = price_s.tolist()
+        date_list = price_s.index.tolist()
+        log.info("[extractor] share_id= {}. there are {} rows of price".format(share_id, len(price_list)))
 
-        # due to the order of close_price in tushare is DESC, so we can get the data from recently.
+        # due to the order of xxx_price in tushare is DESC, so we can get the data from recently.
         # example
         keys, values = [], []
-        n = feature_definition_config["seq_step"]
+        n = feature_definition_config["hloc_seq_step"]
         keys = keys + ["time", "share_id"]
-        keys = keys + ["close_b" + str(i-1) for i in range(n-1,0,-1)]
-        keys = keys + ["target_close_price"]
-        keys = keys + ["target_trend"]
+        keys = keys + ["{}_b".format(field) + str(i - 1) for i in range(n - 1, 0, -1)]
+        keys = keys + ["target_{}_price".format(field)]
+        keys = keys + ["target_{}_trend".format(field)]
 
-        for index in range(len(close_list)):
-            if len(close_list[index:index + n]) == n:  # else: not enough (N) data, so drop it.
+        for index in range(len(price_list)):
+            if len(price_list[index:index + n]) == n:  # else: not enough (N) data, so drop it.
 
-                close_segment = close_list[index:index + n][::-1]
+                price_segment = price_list[index:index + n][::-1]
                 if self.normalized:
-                    close_price_x = [1] + [curr / close_segment[i] for i, curr in enumerate(close_segment[1:-1])]
-                    close_price_y = close_segment[-1] / close_segment[-2]
+                    price_x = [1] + [curr / price_segment[i] for i, curr in enumerate(price_segment[1:-1])]
+                    price_y = price_segment[-1] / price_segment[-2]
                 else:
-                    close_price_x = close_segment[:-2]
-                    close_price_y = close_segment[-1]
+                    price_x = price_segment[:-2]
+                    price_y = price_segment[-1]
 
                 precision = 4
-                close_price_x = [round(x, precision) for x in close_price_x]
-                close_price_y = round(close_price_y, precision)
+                price_x = [round(x, precision) for x in price_x]
+                price_y = round(price_y, precision)
 
-                trend = 1 if close_price_y > 1 else 0
+                trend = 1 if price_y > 1 else 0
                 values.append(
-                    [str(date_list[index]), str(share_id)] + close_price_x + [close_price_y] + [trend])
+                    [str(date_list[index]), str(share_id)] + price_x + [price_y] + [trend])
         return pd.DataFrame(columns=keys, data=values)
 
     def _extract_one_share_n_days_vol(self, bar_df, share_id):
@@ -148,17 +156,16 @@ class BasicExtractor:
 
         return pd.DataFrame(columns=keys, data=values)
 
-    def _merge_data_to_commit(self, close_df):
-        if close_df is None:
-            return
+    def merge_two_dataframe(self, df1, df2):
+        return pd.merge(df1, df2, on=["time", "share_id"])
 
-        result_df = close_df
-
-        # if close_df is None or ror_df is None or vol_df is None:
+    def _merge_data_to_commit(self, close_df, open_df, high_df, low_df):
+        # if close_df is None:
         #     return
-        #
-        # step1_df = pd.merge(close_df, vol_df, on=["time", "share_id"])
-        # result_df = pd.merge(step1_df, ror_df, on=["time", "share_id"])
+        # result_df = close_df
+
+        from functools import reduce
+        result_df = reduce(self.merge_two_dataframe, [close_df, open_df, high_df, low_df])
 
         for index, row in result_df.iterrows():
             self.sdk.save(row.index.tolist(), row.values.tolist())

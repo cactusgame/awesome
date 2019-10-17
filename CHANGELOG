@@ -1,14 +1,19 @@
 project log:
 TODO list
+- 除了tensorboard之外，可视化预测，验证集结果
+- how to use wraped FC in v5
+- use q-learning. stock q learning
+
+
+- 文章内容：
 - 测试集，训练集在时间上要分开。因为大盘有时间一致性。
   训练集（时间越接近当前时间越好）指定时间 2012-01， 2019-01
-- 修改预处理数据，不再预先编译Graph。csv输出（注意顺序）close20,close19...close0,today.(input_size=1, num_step=20)
-- 除了tensorboard之外，可视化预测，验证集结果
 
+- 不要使用全部股票用于训练，要区分类别，减小方差。
+测试结果，dnn，rnn 都在52%上下，说明只用close price基本无效。
 
-- how to use wraped FC in v5
-- wrap close price, volumn into wrap features. change in PP
-- use q-learning. stock q learning
+- 几个错误
+  - 如果预测图形过于精确，那么正则化出了问题
 
 2019-06-23:
 - refactor to support different feature data source

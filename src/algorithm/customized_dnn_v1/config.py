@@ -4,10 +4,13 @@ import time
 
 
 class Config:
+    meta = "2 layer. big bank, 30days close"
+
+    test = False
     # Some file names
     # name of the file which stores all experience
     feature_db_path = "data/features_db.csv"
-    exp_file_path = "data/features.csv"
+    exp_file_path = "data/{}.csv"
     exp_log_data_file_without_header = '{}.withoutheader'.format(exp_file_path)
     exp_log_data_file_shuf_tmp = '{}.shuf.tmp'.format(exp_file_path)
     exp_log_data_file_shuf = '{}.shuf'.format(exp_file_path)
@@ -19,7 +22,7 @@ class Config:
     exp_log_data_file_train_tfrecord = '{}.train.tfrecord'.format(exp_file_path)
     exp_log_data_file_eval_tfrecord = '{}.eval.tfrecord'.format(exp_file_path)
 
-    MODEL_NAME = "customized_dnn_v1"
+    MODEL_NAME = "dnn_v1"
 
     # COS related
     COS_MODEL_DIR = "/models/{}".format(MODEL_NAME)
@@ -42,29 +45,27 @@ class Config:
     # Config for training
     # when testing, I use a small value
     TRAIN_BATCH_SIZE = 16
-    EVAL_BATCH_SIZE = 16
+    EVAL_BATCH_SIZE = 8
 
     # Eval train subsampling factor
     EVAL_TRAIN_SUBSAMPLE_FACTOR = 1
 
-    # Train for `TRAIN_INC_STEPS` steps before evaluating the model.
-    TRAIN_INC_STEPS = 5 * 1000 * 1000
     # Train for `TRAIN_MAX_STEPS` steps max, then stop.
-    TRAIN_MAX_STEPS = 5 * 1000 * 1000
+    TRAIN_MAX_STEPS = 1 * 1000 * 1000
     # Early stopping criterium, even if `TRAIN_MAX_STEPS` is not reached.
     STOP_AFTER_WORSE_EVALS_NUM = 5
 
     EVAL_STEPS = 1000
 
     # eval the model every N seconds
-    EVAL_SECONDS = 120
+    EVAL_SECONDS = 300
 
     # save the model every N seconds
     SAVE_MODEL_SECONDS = 120
 
     # Shuffle uses a running buffer of `shuffle_buffer_size`, so only items within each buffer
     # of `shuffle_buffer_size` are shuffled. Best to make sure the dataset is shuffled beforehand.
-    SHUFFLE_BUFFER_SIZE = 100
+    SHUFFLE_BUFFER_SIZE = 256
 
     # Scaling param for number of model units.
     MODEL_NUM_UNIT_SCALE = 32
@@ -95,7 +96,7 @@ class Config:
     cls_data_formatter = ''
     cls_coder = ''
 
-    def __init__(self, algo_id, train_steps, download_feature_db, do_preprocessing, upload_model):
+    def __init__(self, algo_id, test, train_steps, download_feature_db, do_preprocessing, upload_model):
         self.algo_id = algo_id
 
         self.download_feature_db = True
@@ -111,5 +112,22 @@ class Config:
             self.upload_model = upload_model
 
         if train_steps is not None:
-            self.TRAIN_INC_STEPS = train_steps
             self.TRAIN_MAX_STEPS = train_steps
+
+        if test is not None:
+            self.test = test
+
+    def get_exp_file(self, file_name):
+        return "data/{}.csv".format(file_name)
+
+    def get_exp_file_without_header(self, file_name):
+        return '{}.withoutheader'.format(self.get_exp_file(file_name))
+
+    def get_shuffled_file(self, file_name):
+        return '{}.shuf'.format(self.get_exp_file(file_name))
+
+    def get_shard_file(self, file_name):
+        return '{}.shard'.format(self.get_exp_file(file_name))
+
+    def get_tfr_file(self, file_name):
+        return '{}.tfr'.format(self.get_exp_file(file_name))

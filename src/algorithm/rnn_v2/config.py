@@ -4,7 +4,7 @@ import time
 
 
 class Config:
-    meta = "The model use simple RNN to classify target(0,1) with SZ50. And minus target"
+    meta = "The model use simple RNN to classify target(0,1) with single share"
 
     test = False
     # Some file names
