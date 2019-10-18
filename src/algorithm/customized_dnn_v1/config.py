@@ -2,9 +2,11 @@ import os
 import commands
 import time
 
+from src.extract.feature_definition import TRAIN_FILE_NAME
+
 
 class Config:
-    meta = "2 layer. big bank, 30days close"
+    meta = "2 layer. feature = {}".format(TRAIN_FILE_NAME)
 
     test = False
     # Some file names
