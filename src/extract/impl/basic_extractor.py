@@ -14,6 +14,8 @@ class BasicExtractor:
     def __init__(self, params=None):
         self.normalized = params['normalized']
         self.output_name = params['output_name']
+        if hasattr(params,'trend'):
+            self.force_value = params['trend']
         self.sdk = FeatureSDK(self.output_name)
 
     def execute(self, all_shares, start_date, end_date):
@@ -103,8 +105,8 @@ class BasicExtractor:
                 price_y = round(price_y, precision)
 
                 trend = 1 if price_y > 1 else 0
-                values.append(
-                    [str(date_list[index]), str(share_id)] + price_x + [price_y] + [trend])
+                values.append([str(date_list[index]), str(share_id)] + price_x + [price_y] + [trend])
+
         return pd.DataFrame(columns=keys, data=values)
 
     def _extract_one_share_n_days_vol(self, bar_df, share_id):

@@ -6,7 +6,7 @@ from src.extract.feature_definition import TRAIN_FILE_NAME
 
 
 class Config:
-    meta = "2 layer. feature = {}".format(TRAIN_FILE_NAME)
+    meta = "cnn. feature = {}".format(TRAIN_FILE_NAME)
 
     test = False
     # Some file names
@@ -46,14 +46,14 @@ class Config:
 
     # Config for training
     # when testing, I use a small value
-    TRAIN_BATCH_SIZE = 16
-    EVAL_BATCH_SIZE = 8
+    TRAIN_BATCH_SIZE = 128
+    EVAL_BATCH_SIZE = 1024
 
     # Eval train subsampling factor
     EVAL_TRAIN_SUBSAMPLE_FACTOR = 1
 
     # Train for `TRAIN_MAX_STEPS` steps max, then stop.
-    TRAIN_MAX_STEPS = 1 * 1000 * 1000
+    TRAIN_MAX_STEPS = 1 * 500 * 1000
     # Early stopping criterium, even if `TRAIN_MAX_STEPS` is not reached.
     STOP_AFTER_WORSE_EVALS_NUM = 5
 

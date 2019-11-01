@@ -4,6 +4,7 @@ import multiprocessing as mp
 from src.base.config import cfg
 from data_formatter import DataFormatter
 from src.extract.feature_definition import feature_extractor_definition
+from src.extract.feature_definition import feature_definition_config
 from src.extract.feature_definition import TYPE_INFER
 from src.context import log
 
@@ -25,6 +26,7 @@ class Model:
             fc_open = [e for e in feature_columns if ("open_" in e.name)]
             fc_high = [e for e in feature_columns if ("high_" in e.name)]
             fc_low = [e for e in feature_columns if ("low_" in e.name)]
+
             # fc_volume = [e for e in feature_columns if ("volume_" in e.name)]
             # fc_other = [e for e in feature_columns if ("volume_" not in e.name and "close_" not in e.name)]
 
@@ -33,65 +35,47 @@ class Model:
             input_layer_high = tf.feature_column.input_layer(features=features, feature_columns=fc_high)
             input_layer_low = tf.feature_column.input_layer(features=features, feature_columns=fc_low)
 
-            # input_layer_volume = tf.feature_column.input_layer(features=features, feature_columns=fc_volume)
-            # input_layer_other = tf.feature_column.input_layer(features=features, feature_columns=fc_other)
-
-            # input_layer = tf.concat([input_layer_close, input_layer_volume, input_layer_other], axis=1)
+            # images = tf.feature_column.input_layer(
+            #     features=features, feature_columns=feature_columns)
+            #
+            # images = tf.reshape(
+            #     images, shape=(-1, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_DEPTH))
 
             input_layer = tf.concat([input_layer_close, input_layer_open, input_layer_high, input_layer_low], axis=1)
-
+            d = feature_definition_config['hloc_seq_step'] - 1
+            input_layer = tf.reshape(input_layer, shape=(-1, d, 4))
             # --------------------------------------
             # Network definition: shared dense stack
             # --------------------------------------
-            dropout = 0.0
+            # 1st Convolutional Layer
+            conv1 = tf.layers.conv1d(
+                inputs=input_layer, filters=12, kernel_size=4, padding='same', activation=tf.nn.relu, name='conv1')
+            pool1 = tf.layers.max_pooling1d(inputs=conv1, pool_size=2, strides=1, name='pool1')
+            # norm1 = tf.nn.lrn(pool1, 3, bias=1.0, alpha=0.001 / 9.0, beta=0.75, name='norm1')
 
-            a_h1 = tf.layers.Dense(
-                name="dense{}_{}".format(1, 512),
-                units=512,
-                activation=None,
-                # activity_regularizer=tf.contrib.layers.l2_regularizer(scale=0.1),
-                kernel_initializer=tf.glorot_normal_initializer(),
-                bias_initializer=tf.zeros_initializer()
-            )(input_layer)
-            # a_h1_bn = tf.layers.batch_normalization(a_h1, training=(mode == tf.estimator.ModeKeys.TRAIN))
-            a_h1_act = tf.nn.relu(a_h1)
-            a_h1_do = tf.layers.dropout(
-                inputs=a_h1_act,
-                rate=dropout,
-                training=(mode == tf.estimator.ModeKeys.TRAIN))
+            # 2nd Convolutional Layer
+            conv2 = tf.layers.conv1d(
+                inputs=pool1, filters=36, kernel_size=2, padding='same',
+                activation=tf.nn.relu, name='conv2')
+            # norm2 = tf.nn.lrn(conv2, 3, bias=1.0, alpha=0.001 / 9.0, beta=0.75, name='norm2')
+            pool2 = tf.layers.max_pooling1d(
+                inputs=conv2, pool_size=3, strides=1, name='pool2')
 
-            a_h2 = tf.layers.Dense(
-                name="dense{}_{}".format(2, 64),
-                units=64,
-                activation=None,
-                # activity_regularizer=tf.contrib.layers.l2_regularizer(scale=0.1),
-                kernel_initializer=tf.glorot_normal_initializer(),
-                bias_initializer=tf.zeros_initializer()
-            )(a_h1_do)
-            # a_h2_bn = tf.layers.batch_normalization(a_h2, training=(mode == tf.estimator.ModeKeys.TRAIN))
-            a_h2_act = tf.nn.relu(a_h2)
-            a_h2_do = tf.layers.dropout(
-                inputs=a_h2_act,
-                rate=dropout,
-                training=(mode == tf.estimator.ModeKeys.TRAIN))
+            # Flatten Layer
+            shape = pool2.get_shape()
+            pool2_ = tf.reshape(pool2, [-1, shape[1] * shape[2]])
 
-            # a_h3 = tf.layers.Dense(
-            #     name="dense{}_{}".format(3, 32),
-            #     units=32,
-            #     activation=None,
-            #     activity_regularizer=tf.contrib.layers.l2_regularizer(scale=0.1),
-            #     kernel_initializer=tf.glorot_normal_initializer(),
-            #     bias_initializer=tf.zeros_initializer()
-            # )(a_h2_do)
-            # a_h3_bn = tf.layers.batch_normalization(a_h3, training=(mode == tf.estimator.ModeKeys.TRAIN))
-            # a_h3_act = tf.nn.relu(a_h3_bn)
-            # a_h3_do = tf.layers.dropout(
-            #     inputs=a_h3_act,
-            #     rate=dropout,
-            #     training=(mode == tf.estimator.ModeKeys.TRAIN))
+            # 1st Fully Connected Layer
+            dense1 = tf.layers.dense(
+                inputs=pool2_, units=512, activation=tf.nn.relu, name='dense1')
 
-            # Compute logits (1 per class).
-            logits = tf.layers.dense(a_h2_do, 2, activation=None)
+            # 2nd Fully Connected Layer
+            # dense2 = tf.layers.dense(
+            #     inputs=dense1, units=128, activation=tf.nn.relu, name='dense2')
+
+            # 3rd Fully Connected Layer (Logits)
+            logits = tf.layers.dense(
+                inputs=dense1, units=2, activation=tf.nn.sigmoid, name='logits')
 
             # Compute predictions.
             predicted_classes = tf.argmax(logits, 1)
