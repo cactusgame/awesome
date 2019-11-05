@@ -28,6 +28,8 @@ class DataFormatter:
             self.FEATURES.append('high_b{}'.format(i - 1))
         for i in range(feature_definition_config["hloc_seq_step"] - 1, 0, -1):
             self.FEATURES.append('low_b{}'.format(i - 1))
+        for i in range(feature_definition_config["hloc_seq_step"] - 1, 0, -1):
+            self.FEATURES.append('vol_b{}'.format(i - 1))
 
         self.target_trend = "target_close_trend"
         self.TARGETS = []

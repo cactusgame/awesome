@@ -56,13 +56,12 @@ class BasicExtractor:
         high_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="high")
         low_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="low")
 
-        # vol_df = self._extract_one_share_n_days_vol(bar_df, share_id)
-        # assert vol_df is not None, "share_id = {} vol_df is None".format(share_id)
-        #
+        vol_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="low")
+
         # ror_df = self._extract_one_share_n_days_ror(bar_df, share_id)
         # assert ror_df is not None, "share_id = {} ror_df is None".format(share_id)
 
-        self._merge_data_to_commit(close_df, open_df, high_df, low_df)
+        self._merge_data_to_commit(close_df, open_df, high_df, low_df, vol_df)
         # self._merge_data_to_commit(close_df, vol_df, ror_df)
 
     def _extract_one_share_n_days_price(self, share_id, bar_df, field="close"):
@@ -159,13 +158,9 @@ class BasicExtractor:
     def merge_two_dataframe(self, df1, df2):
         return pd.merge(df1, df2, on=["time", "share_id"])
 
-    def _merge_data_to_commit(self, close_df, open_df, high_df, low_df):
-        # if close_df is None:
-        #     return
-        # result_df = close_df
-
+    def _merge_data_to_commit(self, close_df, open_df, high_df, low_df, vol_df):
         from functools import reduce
-        result_df = reduce(self.merge_two_dataframe, [close_df, open_df, high_df, low_df])
+        result_df = reduce(self.merge_two_dataframe, [close_df, open_df, high_df, low_df, vol_df])
 
         for index, row in result_df.iterrows():
             self.sdk.save(row.index.tolist(), row.values.tolist())
