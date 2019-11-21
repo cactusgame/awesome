@@ -56,7 +56,7 @@ class BasicExtractor:
         high_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="high")
         low_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="low")
 
-        vol_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="low")
+        vol_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="vol")
 
         # ror_df = self._extract_one_share_n_days_ror(bar_df, share_id)
         # assert ror_df is not None, "share_id = {} ror_df is None".format(share_id)

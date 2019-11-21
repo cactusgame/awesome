@@ -1,8 +1,8 @@
 import tensorflow as tf
 import collections
 
-TRAIN_FILE_NAME = 'feature_train_big_bank_20days_hlocv'
-EVAL_FILE_NAME = 'feature_eval_big_bank_20days_hlocv'
+TRAIN_FILE_NAME = 'feature_train_big_bank_20days_hlocv_rencently'
+EVAL_FILE_NAME = 'feature_eval_big_bank_20days_hlocv_recently'
 
 # define different type of features, usually, it's depends on the data source or data API
 FEATURE_ALL = "feature_all"

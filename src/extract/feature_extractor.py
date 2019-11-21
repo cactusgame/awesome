@@ -96,15 +96,15 @@ def main(test=None):
         # extractor.extract_all(start_date='20180102', end_date='20190901',
         #                       params={'normalized': True, 'output_name': EVAL_FILE_NAME})  # as eval
 
-        # extractor.extract_multiple(share_ids=list(ingredient_share_set), start_date='20080101', end_date='20180101',
-        #                            params={'normalized': True, 'output_name': TRAIN_FILE_NAME})  # as train
-        # extractor.extract_multiple(share_ids=list(ingredient_share_set), start_date='20180102', end_date='20190901',
-        #                            params={'normalized': True, 'output_name': EVAL_FILE_NAME})  # as eval
-
-        extractor.extract_multiple(share_ids=target_shares, start_date='20080101', end_date='20180101',
+        extractor.extract_multiple(share_ids=list(ingredient_share_set), start_date='20180101', end_date='20190601',
                                    params={'normalized': True, 'output_name': TRAIN_FILE_NAME})  # as train
-        extractor.extract_multiple(share_ids=target_shares, start_date='20180102', end_date='20190901',
+        extractor.extract_multiple(share_ids=list(ingredient_share_set), start_date='20190602', end_date='20191101',
                                    params={'normalized': True, 'output_name': EVAL_FILE_NAME})  # as eval
+
+        # extractor.extract_multiple(share_ids=target_shares, start_date='20080101', end_date='20180101',
+        #                            params={'normalized': True, 'output_name': TRAIN_FILE_NAME})  # as train
+        # extractor.extract_multiple(share_ids=target_shares, start_date='20180102', end_date='20190901',
+        #                            params={'normalized': True, 'output_name': EVAL_FILE_NAME})  # as eval
 
     log.info("extracting completed, use time {}s".format(str(time.time() - _start)))
 

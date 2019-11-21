@@ -25,18 +25,18 @@ class Model:
             fc_open = [e for e in feature_columns if ("open_" in e.name)]
             fc_high = [e for e in feature_columns if ("high_" in e.name)]
             fc_low = [e for e in feature_columns if ("low_" in e.name)]
-            fc_volume = [e for e in feature_columns if ("vol_" in e.name)]
+            # fc_volume = [e for e in feature_columns if ("vol_" in e.name)]
 
             input_layer_close = tf.feature_column.input_layer(features=features, feature_columns=fc_close)
             input_layer_open = tf.feature_column.input_layer(features=features, feature_columns=fc_open)
             input_layer_high = tf.feature_column.input_layer(features=features, feature_columns=fc_high)
             input_layer_low = tf.feature_column.input_layer(features=features, feature_columns=fc_low)
-            input_layer_volume = tf.feature_column.input_layer(features=features, feature_columns=fc_volume)
+            # input_layer_volume = tf.feature_column.input_layer(features=features, feature_columns=fc_volume)
             #
             # input_layer = tf.concat(
             #     [input_layer_close, input_layer_volume], axis=1)
             input_layer = tf.concat(
-                [input_layer_close, input_layer_volume, input_layer_open, input_layer_high, input_layer_low], axis=1)
+                [input_layer_close,  input_layer_open, input_layer_high, input_layer_low], axis=1)
 
             # --------------------------------------
             # Network definition: shared dense stack
