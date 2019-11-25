@@ -35,6 +35,7 @@ class Agent:
 
         return model
 
+    # since the `predict` needs `state`. It shows the `state` is the input of the whole prediction
     def act(self, state):
         if not self.is_eval and np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
@@ -51,10 +52,14 @@ class Agent:
         for state, action, reward, next_state, done in mini_batch:
             target = reward
             if not done:
-                target = reward + self.gamma * np.amax(self.model.predict(next_state)[0])
+                p = self.model.predict(next_state) # the output of model is size=3 (sell,buy,sit)
+                target = reward + self.gamma * np.amax(p[0]) # does it mean that the model output is reward value?
 
+            # the reward is the real reward value from real world. And the p is the inference by model
+            # correct the `action` to an approx `reward` and fit it.
             target_f = self.model.predict(state)
             target_f[0][action] = target
+            # fit(x,target_y)
             self.model.fit(state, target_f, epochs=1, verbose=0)
 
         if self.epsilon > self.epsilon_min:

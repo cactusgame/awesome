@@ -24,6 +24,7 @@ def sigmoid(x):
 
 
 # returns an an n-day state representation ending at time t
+# n = windows size + 1
 def getState(data, t, n):
     d = t - n + 1
     block = data[d:t + 1] if d >= 0 else -d * [data[0]] + data[0:t + 1]  # pad with t0

@@ -2,6 +2,15 @@ from functions import *
 from src.algorithm.q.example.agent import Agent
 import sys
 
+"""
+- why the state is sigmod?
+
+- design:
+  - how to define the `state` (input)?
+  - how to do the next prediction? ordered ? or unordered?
+  - the model structure?
+  
+"""
 if len(sys.argv) != 4:
     print "Usage: python train.py [stock] [window] [episodes]"
     exit()
