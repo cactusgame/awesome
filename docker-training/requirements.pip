@@ -127,3 +127,4 @@ tushare==1.2.17
 bs4==0.0.1
 scikit-learn==0.20.0
 scipy==1.2.0
+TA-Lib==0.4.17

@@ -7,4 +7,5 @@ RUN pip --no-cache-dir install -r /root/requirements.pip && \
 
 ADD docker-training/.cos.conf /root/.cos.conf
 ADD run_training.sh /root/run_training.sh
+ADD run_testcase.sh /root/run_testcase.sh
 ADD src /root/src/

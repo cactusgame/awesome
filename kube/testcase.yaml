@@ -1,0 +1,36 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: peng-testcase
+  namespace: monitoring
+spec:
+  restartPolicy: Never
+  containers:
+  - name: peng-testcase
+    securityContext:
+      privileged: false
+    image: ccr.ccs.tencentyun.com/prometheus/training-test:latest
+    imagePullPolicy: Always
+    command: ["/bin/sh"]
+    args: ["-c","sleep 6000000000"]
+    ports:
+    - containerPort: 8080
+    resources:
+      requests:
+        cpu: 7000m
+        memory: 54Gi
+      limits:
+        cpu: 7000m
+        memory: 54Gi
+    volumeMounts:
+      - name: featuredb
+        mountPath: /tmp/featuredb
+  volumes:
+    - name: featuredb
+      hostPath:
+        path: /mnt
+  imagePullSecrets:
+  - name: myregistrykey
+  securityContext:
+    runAsUser: 0
