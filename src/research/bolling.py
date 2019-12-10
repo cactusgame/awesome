@@ -22,7 +22,6 @@ def do_test_buy(df, i):
         return 0
 
     def buy_condition(df, i):
-        return True
         breakthrough_middle_line = (
                 df.ix[i, "close"] > df.ix[i, "middle"] and df.ix[i - 1, "close"] < df.ix[i - 1, "middle"])
         up_2_days = df.ix[i, "close"] > df.ix[i, "open"] and df.ix[i - 1, "close"] > df.ix[i - 1, "open"]

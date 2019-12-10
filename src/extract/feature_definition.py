@@ -1,8 +1,8 @@
 import tensorflow as tf
 import collections
 
-TRAIN_FILE_NAME = 'feature_train_big_bank_20days_hlocv_rencently'
-EVAL_FILE_NAME = 'feature_eval_big_bank_20days_hlocv_recently'
+TRAIN_FILE_NAME = 'feature_train_big_bank_5days_c'
+EVAL_FILE_NAME = 'feature_eval_big_bank_5days_c'
 
 # define different type of features, usually, it's depends on the data source or data API
 FEATURE_ALL = "feature_all"
@@ -12,7 +12,7 @@ FEATURE_FINANCE = "feature_finance"
 DOWNLOAD_FEATURES = [FEATURE_BASIC]
 
 feature_definition_config = {}
-feature_definition_config["hloc_seq_step"] = 21  # n -1 is the real `steps`, due to the last one is target
+feature_definition_config["hloc_seq_step"] = 6  # n -1 is the real `steps`, due to the last one is target
 feature_definition_config["ror_n_days_after"] = 60
 
 # feature_extractor_definition is only used for feature extractor,

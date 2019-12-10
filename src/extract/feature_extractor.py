@@ -72,7 +72,6 @@ def main(test=None):
     target_shares = ["601398.SH","601288.SH","601988.SH","601939.SH","601328.SH",]
 
     if econfig.DEBUG:
-        pass
         # extractor.extract_all(start_date='20080101', end_date='20080301',
         #                       params={'normalized': True, 'output_name': TRAIN_FILE_NAME})  # as train
         # extractor.extract_all(start_date='20190101', end_date='20190301',
