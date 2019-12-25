@@ -51,12 +51,12 @@ class BasicExtractor:
         bar_df = ts.pro_bar(pro_api=context.tushare, ts_code=share_id, start_date=start_date,
                             end_date=end_date, adj='qfq')
 
-        close_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="close")
-        open_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="open")
-        high_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="high")
-        low_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="low")
-
-        vol_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="vol")
+        # raw_close_df = self._extract_one_share_n_days_price(share_id=share_id, bar_df=bar_df, field="close")
+        close_df = self._extract_one_share_n_days_price_ratio(share_id=share_id, bar_df=bar_df, field="close")
+        open_df = self._extract_one_share_n_days_price_ratio(share_id=share_id, bar_df=bar_df, field="open")
+        high_df = self._extract_one_share_n_days_price_ratio(share_id=share_id, bar_df=bar_df, field="high")
+        low_df = self._extract_one_share_n_days_price_ratio(share_id=share_id, bar_df=bar_df, field="low")
+        vol_df = self._extract_one_share_n_days_price_ratio(share_id=share_id, bar_df=bar_df, field="vol")
 
         # ror_df = self._extract_one_share_n_days_ror(bar_df, share_id)
         # assert ror_df is not None, "share_id = {} ror_df is None".format(share_id)
@@ -66,7 +66,7 @@ class BasicExtractor:
 
     def _extract_one_share_n_days_price(self, share_id, bar_df, field="close"):
         """
-        uniform method for getting price of HLOC
+        return the raw HLOC for a share, without any transform
         :param share_id:
         :param bar_df:
         :param field:
@@ -106,23 +106,49 @@ class BasicExtractor:
                     [str(date_list[index]), str(share_id)] + price_x + [price_y] + [trend])
         return pd.DataFrame(columns=keys, data=values)
 
-    def _extract_one_share_n_days_vol(self, bar_df, share_id):
-        vol_s = bar_df['vol']
-        # print(close_s)
-        vol_list = vol_s.tolist()
-        date_list = vol_s.index.tolist()
-        log.info("[extractor] share_id= {}. there are {} rows of volume".format(share_id, len(vol_list)))
+    def _extract_one_share_n_days_price_ratio(self, share_id, bar_df, field="close"):
+        """
+        uniform method for getting price of HLOC
+        :param share_id:
+        :param bar_df:
+        :param field:
+        :return:
+        """
+        price_s = bar_df[field]
+        price_list = price_s.tolist()
+        date_list = price_s.index.tolist()
+        log.info("[extractor] share_id= {}. there are {} rows of price".format(share_id, len(price_list)))
 
-        # this part is the same as _extract_one_share_n_days_close
+        # due to the order of xxx_price in tushare is DESC, so we can get the data from recently.
+        # example
         keys, values = [], []
-        n = feature_definition_config["close_n_days_before"]
+        n = feature_definition_config["hloc_seq_step"]
         keys = keys + ["time", "share_id"]
-        keys = keys + ["volume_b" + str(i) for i in range(n)]
+        keys = keys + ["{}_b".format(field) + str(i - 1) for i in range(n - 1, 0, -1)]
+        keys = keys + ["target_{}_price".format(field)]
+        keys = keys + ["target_{}_trend".format(field)]
 
-        for index in range(len(vol_list)):
-            if len(vol_list[index:index + n]) == n:  # else: not enough (N) data, so drop it.
+        for index in range(len(price_list)):
+            if len(price_list[index:index + n]) == n:  # else: not enough (N) data, so drop it.
+
+                price_segment = price_list[index:index + n][::-1]
+                if self.normalized:
+                    price_x = [1] + [curr / price_segment[i] for i, curr in enumerate(price_segment[1:-1])]
+                    price_y = price_segment[-1] / price_segment[-2]
+                else:
+                    price_x = price_segment[:-1]
+                    price_y = price_segment[-1]
+
+                precision = 4
+                price_x = [round(x, precision) for x in price_x]
+                price_y = round(price_y, precision)
+
+                if self.normalized:
+                    trend = 1 if price_y > 1 else 0
+                else:
+                    trend = 1 if price_segment[-1] / price_segment[-2] > 1 else 0
                 values.append(
-                    [str(date_list[index]), str(share_id)] + preprocessing.scale(vol_list[index:index + n]).tolist())
+                    [str(date_list[index]), str(share_id)] + price_x + [price_y] + [trend])
         return pd.DataFrame(columns=keys, data=values)
 
     def _extract_one_share_n_days_ror(self, bar_df, share_id):

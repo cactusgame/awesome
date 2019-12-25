@@ -83,9 +83,9 @@ def main(test=None):
         #                            params={'normalized': True, 'output_name': EVAL_FILE_NAME})  # as eval
 
         extractor.extract_multiple(share_ids=target_shares, start_date='20080101', end_date='20180101',
-                                   params={'normalized': True, 'output_name': TRAIN_FILE_NAME})  # as train
+                                   params={'normalized': False, 'output_name': TRAIN_FILE_NAME})  # as train
         extractor.extract_multiple(share_ids=target_shares, start_date='20180102', end_date='20190901',
-                                   params={'normalized': True, 'output_name': EVAL_FILE_NAME})  # as eval
+                                   params={'normalized': False, 'output_name': EVAL_FILE_NAME})  # as eval
     else:
         # for test stage1, we should only extract recent 4000 days's data
         # extractor.extract_all(start_date='20050101', end_date='20181231')

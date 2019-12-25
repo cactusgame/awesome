@@ -1,7 +1,15 @@
 import os
 import imp
+import math
 from src.base.config import cfg
 
+
+def formatPrice(n):
+    return ("-$" if n < 0 else "$") + "{0:.2f}".format(abs(n))
+
+# returns the sigmoid
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))
 
 def get_model_timestamp():
     """
