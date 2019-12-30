@@ -24,9 +24,10 @@ def do_test_buy(df, i):
         # buy strategy:
         # - today's close is the N days's lowest price
         # - the previous M day, i-1, i-2, i-M days, can't be the second lowest price
-
+        # - the recent K day, can't be all is down trend
         N = 20
         M = 4
+        K = 3
         if i > N:
             lowest_recently = np.min(df.ix[i - N: i, "close"])
             second_lowest_recently = np.min(df.ix[i - N: i - 1, "close"])
@@ -38,7 +39,7 @@ def do_test_buy(df, i):
                     second_lowest_is_far = False
 
             if today_is_n_days_lowest and second_lowest_is_far:
-                # print df.ix[i, "trade_date"]
+                print df.ix[i, "trade_date"]
                 return True
         # breakthrough_lower = (df.ix[i, "close"] > df.ix[i, "upper"] )
         # vol = df.ix[i,"vol"] < df.ix[i-1,"vol"]
