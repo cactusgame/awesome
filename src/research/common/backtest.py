@@ -36,15 +36,18 @@ class BackTest():
                 self.money = 0
                 self.hold = shares
                 self.state = self.STATE_HOLD
-                print("[date={}] buy {} shares at price = {}".format(date, shares, close))
+                print("[date={}] buy    {:.2f}  price={:.2f}".format(date, shares, close))
 
             elif self.state == self.STATE_HOLD and sell_signal:
                 if close > buy_price:
                     self.trading_up_times = self.trading_up_times + 1
+                    trend = "up"
+                else:
+                    trend = "down"
                 self.money = int((self.money + self.hold * close) * self.discount)
                 self.state = self.STATE_EMPTY
 
-                print("[date={}] sell {} shares at price = {}".format(date, self.hold, close))
+                print("[date={}] sell   {:.2f}  price={:.2f}    trend={}".format(date, self.hold, close, trend))
                 self.hold = 0
                 self.trading_times = self.trading_times + 1
 
