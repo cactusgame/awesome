@@ -11,6 +11,8 @@ def sampler(p1, p2):
 # b2 = (W == 0) & (b == 0)
 # b3 = tf.cast(tf.tile(tf.constant(b2, shape=(1, 1)), (1, 22)), tf.bool)
 # t2 = tf.cast(b3, tf.bool)
+# xxx = np.ones(shape=(1,60)).tolist()
+xxx = [1.0] * 5
 
 fa = tf.constant([12.0, 24.0])
 fb = tf.constant([15.5])
