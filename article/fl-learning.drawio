@@ -1,1 +1,49 @@
-<mxfile host="app.diagrams.net" modified="2020-09-23T01:09:51.123Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36" etag="WBdQhyq8IWkILEa7MBZ_" version="13.7.4" type="github"><diagram id="hqJXE2mBXw9CYA6xbLTW" name="第 1 页">ddHNEoIgEADgp+GOMFmdzfLSyUNnRjZhBl0HabSePh0wY6wTy7cLyw/hWTNerOjUFSUYwqgcCT8RxhhN02mY5eklSejOS221DLZCqV8QkAZ9aAl9VOgQjdNdjBW2LVQuMmEtDnHZHU3ctRM1bKCshNnqTUunvB7YfvUCdK2Wzkl69JlGLMXhJr0SEocv4jnhmUV0PmrGDMz8esu7+HXnP9nPwSy07seCKVj3nibRF/H8DQ==</diagram></mxfile>
+<mxfile host="app.diagrams.net" modified="2020-09-23T01:24:42.892Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36" etag="rL3n9Nb43Vam_xg7t_d-" version="13.7.4" type="github">
+  <diagram id="hqJXE2mBXw9CYA6xbLTW" name="第 1 页">
+    <mxGraphModel dx="2893" dy="1105" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="uZS38UH1FDWmxBuLMC9N-2" value="" style="endArrow=none;html=1;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint y="80" as="sourcePoint" />
+            <mxPoint x="830" y="80" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uZS38UH1FDWmxBuLMC9N-4" value="" style="endArrow=none;html=1;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-3" y="720" as="sourcePoint" />
+            <mxPoint x="827" y="720" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uZS38UH1FDWmxBuLMC9N-6" value="蚂蚁医院端&lt;br&gt;4c8g" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="80" width="200" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="uZS38UH1FDWmxBuLMC9N-7" value="Prometheus&lt;br&gt;1.5c3g" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="400" width="200" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="uZS38UH1FDWmxBuLMC9N-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="uZS38UH1FDWmxBuLMC9N-7" target="uZS38UH1FDWmxBuLMC9N-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uZS38UH1FDWmxBuLMC9N-10" value="AlertManager&lt;br&gt;0.5c1g" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="520" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="uZS38UH1FDWmxBuLMC9N-11" value="model-manager&lt;br&gt;2c4g" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="560" width="200" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="uZS38UH1FDWmxBuLMC9N-12" value="drgs-infering&lt;br&gt;6c12g" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="80" width="200" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="uZS38UH1FDWmxBuLMC9N-13" value="cloud-gateway&lt;br&gt;0.5c1g" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="600" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="uZS38UH1FDWmxBuLMC9N-14" value="cloud-eureka&lt;br&gt;0.5c1g" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="640" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="uZS38UH1FDWmxBuLMC9N-15" value="cloud-oauth&lt;br&gt;0.5c1g" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="680" width="200" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
