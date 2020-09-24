@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2020-09-24T02:33:53.124Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36" etag="LxlxZSiBRF72JuZ3LEuj" version="13.7.5" type="github">
+<mxfile host="app.diagrams.net" modified="2020-09-24T06:09:15.383Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36" etag="lm1ZUwDfpjhQgooM2DhT" version="13.7.5" type="github">
   <diagram id="hqJXE2mBXw9CYA6xbLTW" name="第 1 页">
     <mxGraphModel dx="2660" dy="1033" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -28,7 +28,7 @@
         <mxCell id="uZS38UH1FDWmxBuLMC9N-10" value="AlertManager&lt;br&gt;0.5c1g" style="html=1;" parent="1" vertex="1">
           <mxGeometry x="160" y="520" width="200" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="uZS38UH1FDWmxBuLMC9N-11" value="model-manager&lt;br&gt;1c2g" style="html=1;" parent="1" vertex="1">
+        <mxCell id="uZS38UH1FDWmxBuLMC9N-11" value="model-manager&lt;br&gt;1c2g" style="html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="160" y="560" width="200" height="80" as="geometry" />
         </mxCell>
         <mxCell id="uZS38UH1FDWmxBuLMC9N-12" value="drgs-infering&lt;br&gt;6c12g" style="html=1;" parent="1" vertex="1">
@@ -37,7 +37,7 @@
         <mxCell id="uZS38UH1FDWmxBuLMC9N-13" value="cloud-gateway&lt;br&gt;1c2g" style="html=1;" parent="1" vertex="1">
           <mxGeometry x="480" y="560" width="200" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="uZS38UH1FDWmxBuLMC9N-14" value="cloud-eureka&lt;br&gt;1c2g" style="html=1;" parent="1" vertex="1">
+        <mxCell id="uZS38UH1FDWmxBuLMC9N-14" value="cloud-eureka&lt;br&gt;1c2g" style="html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="160" y="640" width="200" height="80" as="geometry" />
         </mxCell>
         <mxCell id="uZS38UH1FDWmxBuLMC9N-15" value="cloud-oauth&lt;br&gt;1c2g" style="html=1;fillColor=#6a00ff;strokeColor=#3700CC;fontColor=#ffffff;" parent="1" vertex="1">
