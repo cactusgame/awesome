@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2020-09-24T06:09:15.383Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36" etag="lm1ZUwDfpjhQgooM2DhT" version="13.7.5" type="github">
+<mxfile host="app.diagrams.net" modified="2020-09-24T06:13:47.736Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36" etag="yU1WDc9CyqHhwIYF8mTD" version="13.7.5" type="github">
   <diagram id="hqJXE2mBXw9CYA6xbLTW" name="第 1 页">
     <mxGraphModel dx="2660" dy="1033" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -31,7 +31,7 @@
         <mxCell id="uZS38UH1FDWmxBuLMC9N-11" value="model-manager&lt;br&gt;1c2g" style="html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="160" y="560" width="200" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="uZS38UH1FDWmxBuLMC9N-12" value="drgs-infering&lt;br&gt;6c12g" style="html=1;" parent="1" vertex="1">
+        <mxCell id="uZS38UH1FDWmxBuLMC9N-12" value="drgs-infering&lt;br&gt;4c8g" style="html=1;" parent="1" vertex="1">
           <mxGeometry x="480" y="80" width="200" height="320" as="geometry" />
         </mxCell>
         <mxCell id="uZS38UH1FDWmxBuLMC9N-13" value="cloud-gateway&lt;br&gt;1c2g" style="html=1;" parent="1" vertex="1">
@@ -61,13 +61,13 @@
         <mxCell id="uZS38UH1FDWmxBuLMC9N-21" value="mysql&lt;br&gt;2c4g" style="html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="480" y="400" width="200" height="160" as="geometry" />
         </mxCell>
-        <mxCell id="IfHC7NuBLYQAB4ykQGZo-1" value="registry2&lt;br&gt;0.5c1g" style="html=1;" vertex="1" parent="1">
+        <mxCell id="IfHC7NuBLYQAB4ykQGZo-1" value="registry2&lt;br&gt;0.5c1g" style="html=1;" parent="1" vertex="1">
           <mxGeometry x="160" y="760" width="200" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="IfHC7NuBLYQAB4ykQGZo-2" value="model-manager-frontend&lt;br&gt;0.5c1g" style="html=1;" vertex="1" parent="1">
+        <mxCell id="IfHC7NuBLYQAB4ykQGZo-2" value="model-manager-frontend&lt;br&gt;0.5c1g" style="html=1;" parent="1" vertex="1">
           <mxGeometry x="160" y="800" width="200" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="IfHC7NuBLYQAB4ykQGZo-3" value="docker-cleaner-job&lt;br&gt;0.5c1g" style="html=1;" vertex="1" parent="1">
+        <mxCell id="IfHC7NuBLYQAB4ykQGZo-3" value="docker-cleaner-job&lt;br&gt;0.5c1g" style="html=1;" parent="1" vertex="1">
           <mxGeometry x="480" y="800" width="200" height="40" as="geometry" />
         </mxCell>
       </root>
