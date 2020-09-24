@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2020-09-24T06:19:44.560Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36" etag="bwkC-160gmS_HcfRglKU" version="13.7.5" type="github">
+<mxfile host="app.diagrams.net" modified="2020-09-24T06:28:07.879Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36" etag="lpVIctZ3uMiwz9_YCV5Q" version="13.7.5" type="github">
   <diagram id="hqJXE2mBXw9CYA6xbLTW" name="第 1 页">
     <mxGraphModel dx="2660" dy="1033" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -34,7 +34,7 @@
         <mxCell id="uZS38UH1FDWmxBuLMC9N-12" value="drgs-infering&lt;br&gt;4c8g" style="html=1;" parent="1" vertex="1">
           <mxGeometry x="160" y="80" width="200" height="320" as="geometry" />
         </mxCell>
-        <mxCell id="uZS38UH1FDWmxBuLMC9N-13" value="cloud-gateway&lt;br&gt;1c2g" style="html=1;" parent="1" vertex="1">
+        <mxCell id="uZS38UH1FDWmxBuLMC9N-13" value="cloud-gateway&lt;br&gt;1c2g" style="html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="160" y="560" width="200" height="80" as="geometry" />
         </mxCell>
         <mxCell id="uZS38UH1FDWmxBuLMC9N-14" value="cloud-eureka&lt;br&gt;1c2g" style="html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
